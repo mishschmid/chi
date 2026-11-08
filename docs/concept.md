@@ -48,7 +48,20 @@ Chi is a voice-first AI companion: a very knowledgeable chat partner, and over t
 
 ### Professional Partner Programme
 
-Trusted professionals bring their clients to **Chi** (always Chi, never a single child app) and earn recurring income. Physios are the first test group. The model works for any profession that fits a child app:
+Trusted professionals bring their clients to **Chi** (always Chi, never a single child app) and earn recurring income.
+
+**First partner group: holistic health professionals.** These are people who look at health span as a whole: movement and mechanics, nutrition, exercise, sleep, stress and recovery. Examples: integrative physios, longevity and health coaches, functional medicine practitioners, nutritionists, sports doctors, premium gyms and clinics. Chi becomes part of *their* coaching offer.
+
+Holistic health covers several child apps:
+
+| Health span area | Child app |
+|---|---|
+| Movement, training, rehab | Cima |
+| Stress, recovery, breathwork | Sansa |
+| Nutrition | Cucia |
+| Sleep, habits, posture | Habitat |
+
+Later, the model can extend to other professions that fit a child app:
 
 | Child app | Natural partners |
 |---|---|
@@ -82,7 +95,7 @@ Trusted professionals bring their clients to **Chi** (always Chi, never a single
 
 ### Partner Access
 
-- **Limited to the partner's area:** a physio sees Cima (and possibly Sansa) data only. A financial adviser sees Ciaro only. Partners never see Chi's conversations or memory.
+- **Limited to the partner's area:** a holistic health professional sees the health span areas (Cima, Sansa, Cucia, Habitat, wearable data) as **one client overview**. A financial adviser sees Ciaro only. Partners never see Chi's conversations or memory.
 - **Client consent:** the client explicitly agrees to share specific things, through Chi, and can withdraw consent at any time.
 - **Partner powers:** assign plans or exercises, see whether the client completed them and their feedback (e.g. pain, effort), and send short messages.
 - **Chi passes things on:** *"Rebecca added three new exercises for you today. Shall we do them now?"* Chi is open with the user about what the partner can see.
@@ -91,7 +104,8 @@ Trusted professionals bring their clients to **Chi** (always Chi, never a single
 ## Market
 
 - **Start:** Switzerland, multilingual from day one (DE / FR / IT / EN).
-- **First partner group:** physiotherapists.
+- **First partner group:** holistic health and longevity professionals.
+- **Why Switzerland suits this:** an established longevity and wellness culture (clinics, premium gyms) and users who can afford it.
 
 ## Decisions Made
 
@@ -105,6 +119,51 @@ Trusted professionals bring their clients to **Chi** (always Chi, never a single
 | Crediting | Whoever brought the user in, for the whole subscription, for as long as they stay |
 | Partner access | Limited to their area, with client consent; assign + see progress + messages; no access to Chi conversations |
 | Market | Switzerland, DE/FR/IT/EN |
+| First partner group | Holistic health / longevity professionals |
+
+## Strategic Risks & Focus
+
+### Strengths
+
+- **Strong north star:** it measures the relationship, not features.
+- **The child apps already exist:** they give Chi structured life data, not just chat history.
+- **Health span is connected, and so is Chi.** Bad sleep leads to a poor workout, then stress, then poor food choices. Single-purpose apps each see one piece. Chi sees the whole picture and talks about it (*"You slept badly three nights in a row, let's make today's training easier."*). This makes the app universe a deliberate offer rather than a lack of focus.
+- **Distribution through trusted professionals:** high conversion and retention, and it addresses the hardest problem in consumer apps.
+- **Longevity is a growing market** with users who are willing to pay.
+- **Switzerland as the starting market:** high trust, high income, a strong wellness culture, and small enough to win.
+
+### Key Risks
+
+1. **Competition from big tech and health tech.** OpenAI, Google and Apple are building voice AI companions with memory. Whoop, Oura, Function Health, Zoe, Levels and longevity clinics compete in health span. Chi's edge is the **combination**: conversation + all health areas + a professional in the loop. Most competitors have only one or two of these.
+2. **Too much to build.** The holistic offer needs Cucia and Habitat, which are only planned, plus wearable integrations. Building and running all of this is expensive for a small team. The parts that don't serve health span (Ciaro, Done., Human Design) should wait.
+3. **Voice-first is a high bar.** A daily "Hey Chi" habit has to be earned over months. Swiss German speech recognition is still unreliable. Early users will come for a specific goal, not for friendship.
+4. **The partner programme undermines the "friend".** Money for referrals plus a 2-level structure can look like MLM. What convinces professionals is **saving time and better client outcomes**. Health professionals are a regulated group.
+5. **The line between wellness and medicine.** If Chi interprets biomarkers or gives advice that sounds like a diagnosis, it may count as a medical device (Swissmedic / EU MDR). Chi must clearly stay on the coaching and wellness side and leave medical decisions to professionals.
+6. **Credibility.** The longevity field is full of hype. Chi needs to be grounded in evidence to be trusted by serious professionals.
+7. **Very sensitive data.** Health, sleep, nutrition and personal life in one place. One breach or trust scandal could end the product, so security needs serious early investment.
+
+### Recommended Focus
+
+1. **Lead with health span:** Cima + Sansa first, then Cucia and Habitat. Hold off on Ciaro, Done. and Human Design as products to push (they can keep running).
+2. **Positioning:** **"Your health span coach's assistant, every day."** Chi checks in daily, links sleep, training, nutrition and stress, adjusts plans, and reports to the coach. The friendship grows from there.
+3. **Wearable integrations are essential:** Apple Health, Oura, Garmin, Whoop (sleep, HRV, activity). Without them, the holistic view relies on what users tell Chi.
+4. **A holistic client overview for partners:** one view of movement, nutrition, sleep and stress per client (with consent), not separate data from each app.
+5. **Partner offer about their practice, not the money:** time-saving tools, client progress reports, possibly a free partner account, and a simple 1-level revenue share. Revisit level 2 later. Avoid MLM-style wording.
+6. **Pricing:** CHF 20 base, plus a **premium coach-supported tier** (e.g. CHF 30–50) that matches what longevity clients are willing to pay and gives partners more value.
+7. **Test before building more:** 5–10 holistic coaches or practitioners, each with 5+ active clients for 3 months. Measure whether clients stick with the programme and whether coaches save time.
+
+### Assessment
+
+| Aspect | Rating |
+|---|---|
+| Vision and timing | Strong |
+| Defensibility as a "general companion" | Weak (big tech) |
+| Defensibility as "holistic health span companion + professional in the loop" | Strong |
+| Focus | Good, if limited to health span first |
+| Partner programme | Good idea, wrong emphasis |
+| Feasibility for a small team | Only if focused (wearables + Cucia + Habitat are a lot) |
+
+> Some of these recommendations differ from the decisions above (partners pay, 2 levels max, CHF 20 for everything). Review them before building the partner programme.
 
 ## Open Questions & Risks
 
@@ -112,6 +171,7 @@ Trusted professionals bring their clients to **Chi** (always Chi, never a single
 - Swiss UWG Art. 3 lit. r (pyramid / snowball systems): rewards must always come from real paid usage, never from recruiting alone. Get a legal review.
 - Professional codes and kickback rules (e.g. Physioswiss, Swiss health law, financial adviser rules): how and when partners tell clients about their fee. Check each profession before opening the programme to it.
 - nDSG: health and financial data are sensitive personal data. Consent flows, data residency and the rights of the people whose data is processed.
+- Medical device rules (Swissmedic / EU MDR): where exactly the line between wellness coaching and medical advice falls for Chi's health features.
 - Wording: avoid MLM-style terms ("network", "levels"). Use "Partner Programme" and "Referral Bonus" instead.
 
 **Business**
@@ -119,6 +179,7 @@ Trusted professionals bring their clients to **Chi** (always Chi, never a single
 - How often and how are partners paid out? Minimum payout amount?
 - Do a partner's own subscription and their earnings offset each other?
 - What is the trial length and the payment method?
+- Premium coach-supported tier: price, what's included, and how the revenue is split with the coach?
 
 **Product**
 - When and how often should Chi suggest child apps (timing, frequency, tone)?
@@ -126,3 +187,5 @@ Trusted professionals bring their clients to **Chi** (always Chi, never a single
 - Voice: wake word ("Hey Chi") vs. push-to-talk; handling Swiss German.
 - What do existing child app users experience when Chi launches (account migration)?
 - Who resolves conflicts when the same data is edited in Chi and in a child app at the same time?
+- Which wearables come first, and is that data stored by Chi or by Habitat/Cima?
+- How quickly can Cucia and Habitat reach a usable first version?
