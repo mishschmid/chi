@@ -9,6 +9,7 @@ export interface ChatOptions {
   model?: string
   temperature?: number
   maxTokens?: number
+  enableTools?: boolean
 }
 
 export interface LlmProvider {

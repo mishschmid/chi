@@ -27,6 +27,9 @@ export default defineNuxtConfig({
     llmExtractionModel: process.env.LLM_EXTRACTION_MODEL ?? 'gpt-4o-mini',
     openaiApiKey: process.env.OPENAI_API_KEY ?? '',
     anthropicApiKey: process.env.ANTHROPIC_API_KEY ?? '',
+    sansaApiUrl: process.env.SANSA_API_URL ?? 'http://localhost:3000',
+    sansaServiceSecret: process.env.SANSA_SERVICE_SECRET ?? '',
+    sansaUserId: process.env.SANSA_USER_ID ?? '',
   },
 
   routeRules: {
