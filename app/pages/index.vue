@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { ref, onMounted, nextTick, watch } from 'vue'
 import { useChat } from '~/composables/useChat'
+import { useAudioRecorder } from '~/composables/useAudioRecorder'
+import { useAudioPlayer } from '~/composables/useAudioPlayer'
 import ChatMessage from '~/components/ChatMessage.vue'
 
 const {
@@ -8,16 +10,34 @@ const {
   activeConversationId,
   messages,
   isStreaming,
-  error,
+  error: chatError,
   loadConversations,
   selectConversation,
   createConversation,
   sendMessage,
 } = useChat()
 
+const {
+  isRecording,
+  isTranscribing,
+  error: recorderError,
+  startRecording,
+  stopRecording,
+  cancelRecording,
+} = useAudioRecorder()
+
+const {
+  isPlaying,
+  isSynthesizing,
+  error: playerError,
+  speak,
+  stop: stopSpeaking,
+} = useAudioPlayer()
+
 const inputMessage = ref('')
 const messagesContainer = ref<HTMLElement | null>(null)
 const isSidebarOpen = ref(false)
+const autoVoiceReply = ref(true)
 
 onMounted(async () => {
   await loadConversations()
@@ -43,7 +63,23 @@ async function handleSend() {
   const text = inputMessage.value
   if (!text.trim() || isStreaming.value) return
   inputMessage.value = ''
+  stopSpeaking()
   await sendMessage(text)
+}
+
+async function toggleVoiceRecording() {
+  stopSpeaking()
+  if (isRecording.value) {
+    const transcribedText = await stopRecording()
+    if (transcribedText) {
+      const response = await sendMessage(transcribedText)
+      if (response && autoVoiceReply.value) {
+        await speak(response)
+      }
+    }
+  } else {
+    await startRecording()
+  }
 }
 
 function handleKeydown(e: KeyboardEvent) {
@@ -54,6 +90,7 @@ function handleKeydown(e: KeyboardEvent) {
 }
 
 async function handleSelect(id: string) {
+  stopSpeaking()
   await selectConversation(id)
   isSidebarOpen.value = false
 }
@@ -99,13 +136,23 @@ async function handleSelect(id: string) {
             conversations.find((c) => c.id === activeConversationId)?.title || 'New conversation'
           }}
         </span>
-        <NuxtLink to="/memory" class="btn btn--subtle mobile-only">Memory</NuxtLink>
+        <div class="chat-header__controls">
+          <button
+            v-if="isPlaying || isSynthesizing"
+            class="btn btn--voice-status"
+            title="Stop Chi speaking"
+            @click="stopSpeaking"
+          >
+            🔊 Speaking (Click to stop)
+          </button>
+          <NuxtLink to="/memory" class="btn btn--subtle mobile-only">Memory</NuxtLink>
+        </div>
       </header>
 
       <div ref="messagesContainer" class="messages-list">
         <div v-if="messages.length === 0" class="messages-empty">
           <p class="messages-empty__title">Hey there</p>
-          <p class="messages-empty__desc">Talk to Chi by typing below.</p>
+          <p class="messages-empty__desc">Talk to Chi with voice or type below.</p>
         </div>
         <ChatMessage
           v-for="(msg, idx) in messages"
@@ -116,22 +163,38 @@ async function handleSelect(id: string) {
         />
       </div>
 
-      <div v-if="error" class="error-banner">
-        {{ error }}
+      <div v-if="chatError || recorderError || playerError" class="error-banner">
+        {{ chatError || recorderError || playerError }}
       </div>
 
       <footer class="chat-input-area">
+        <button
+          :class="[
+            'btn-voice',
+            { 'btn-voice--recording': isRecording },
+            { 'btn-voice--transcribing': isTranscribing },
+          ]"
+          :disabled="isStreaming"
+          :title="isRecording ? 'Click to stop and send' : 'Hold or click to speak'"
+          @click="toggleVoiceRecording"
+        >
+          <span v-if="isRecording" class="pulse-icon">●</span>
+          <span v-else-if="isTranscribing" class="transcribing-icon">⏳</span>
+          <span v-else class="mic-icon">🎙</span>
+        </button>
+
         <textarea
           v-model="inputMessage"
           class="chat-textarea"
           rows="1"
           placeholder="Ask Chi anything..."
-          :disabled="isStreaming"
+          :disabled="isStreaming || isRecording"
           @keydown="handleKeydown"
         />
+
         <button
           class="btn btn--send"
-          :disabled="isStreaming || !inputMessage.trim()"
+          :disabled="isStreaming || !inputMessage.trim() || isRecording"
           @click="handleSend"
         >
           Send
@@ -273,6 +336,22 @@ async function handleSelect(id: string) {
     white-space: nowrap;
     flex: 1;
   }
+
+  &__controls {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+}
+
+.btn--voice-status {
+  background-color: rgba($accent, 0.15);
+  color: $accent;
+  border: 1px solid rgba($accent, 0.3);
+  font-size: 0.8rem;
+  border-radius: $radius-full;
+  padding: 0.25rem 0.75rem;
+  animation: pulse 1.8s infinite;
 }
 
 .messages-list {
@@ -316,6 +395,43 @@ async function handleSelect(id: string) {
   gap: 0.5rem;
   align-items: flex-end;
   background-color: $bg-app;
+}
+
+.btn-voice {
+  width: 42px;
+  height: 42px;
+  border-radius: $radius-full;
+  border: 1px solid $border-subtle;
+  background-color: $bg-surface;
+  color: $text-primary;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.15rem;
+  transition: all 0.2s ease;
+
+  &:hover:not(:disabled) {
+    background-color: $bg-surface-elevated;
+    border-color: $accent;
+  }
+
+  &--recording {
+    background-color: #ef4444 !important;
+    border-color: #f87171 !important;
+    color: #fff !important;
+    animation: pulse 1.2s infinite;
+  }
+
+  &--transcribing {
+    background-color: $accent-dim;
+    border-color: $accent;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
 }
 
 .chat-textarea {
@@ -397,6 +513,21 @@ async function handleSelect(id: string) {
 
   @media (max-width: 768px) {
     display: inline-flex;
+  }
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.06);
+    opacity: 0.85;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
   }
 }
 </style>

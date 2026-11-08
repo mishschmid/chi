@@ -64,16 +64,16 @@ export function useChat() {
     }
   }
 
-  async function sendMessage(content: string) {
+  async function sendMessage(content: string): Promise<string | null> {
     const trimmed = content.trim()
-    if (!trimmed || isStreaming.value) return
+    if (!trimmed || isStreaming.value) return null
 
     error.value = null
 
     let convId = activeConversationId.value
     if (!convId) {
       convId = await createConversation()
-      if (!convId) return
+      if (!convId) return null
     }
 
     // Optimistically add user message
@@ -120,12 +120,15 @@ export function useChat() {
       // Refresh conversations list to pick up updated title & order
       const updatedList = await $fetch<ConversationItem[]>('/api/conversations')
       conversations.value = updatedList
+
+      return messages.value[assistantMsgIndex]?.content || null
     } catch (e: any) {
       error.value = e?.message || 'Error while receiving response'
       const target = messages.value[assistantMsgIndex]
       if (target && !target.content) {
         messages.value.splice(assistantMsgIndex, 1)
       }
+      return null
     } finally {
       isStreaming.value = false
     }
