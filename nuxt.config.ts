@@ -1,0 +1,49 @@
+// https://nuxt.com/docs/api/configuration/nuxt-config
+export default defineNuxtConfig({
+  compatibilityDate: '2026-03-14',
+  future: { compatibilityVersion: 4 },
+  devtools: { enabled: true },
+
+  app: {
+    head: {
+      title: 'Chi',
+      meta: [
+        {
+          name: 'viewport',
+          content: 'width=device-width, initial-scale=1, interactive-widget=resizes-content',
+        },
+        { name: 'theme-color', content: '#0f1115' },
+      ],
+    },
+  },
+
+  css: ['~/assets/styles/global.scss'],
+
+  runtimeConfig: {
+    databaseUrl: process.env.DATABASE_URL ?? 'postgresql://chi:chi@localhost:5433/chi',
+    devUserId: process.env.DEV_USER_ID ?? '00000000-0000-0000-0000-000000000001',
+    llmProvider: process.env.LLM_PROVIDER ?? 'openai',
+    llmChatModel: process.env.LLM_CHAT_MODEL ?? 'gpt-4o',
+    llmExtractionModel: process.env.LLM_EXTRACTION_MODEL ?? 'gpt-4o-mini',
+    openaiApiKey: process.env.OPENAI_API_KEY ?? '',
+    anthropicApiKey: process.env.ANTHROPIC_API_KEY ?? '',
+  },
+
+  routeRules: {
+    '/api/**': { cache: false, headers: { 'cache-control': 'no-store' } },
+  },
+
+  vite: {
+    css: {
+      preprocessorOptions: {
+        scss: {
+          additionalData: '@use "~/assets/styles/variables" as *;',
+        },
+      },
+    },
+  },
+
+  typescript: {
+    strict: true,
+  },
+})
