@@ -71,11 +71,14 @@ export function useAudioRecorder() {
           const response = await $fetch<{ text: string }>('/api/voice/transcribe', {
             method: 'POST',
             body: formData,
+            credentials: 'include',
           })
 
           resolve(response.text?.trim() || null)
         } catch (err: any) {
-          error.value = err?.statusMessage || 'Transcription failed'
+          const detailedMsg =
+            err?.data?.statusMessage || err?.data?.message || err?.statusMessage || err?.message
+          error.value = detailedMsg || 'Transcription failed'
           resolve(null)
         } finally {
           isTranscribing.value = false

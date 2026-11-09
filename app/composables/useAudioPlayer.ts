@@ -17,6 +17,7 @@ export function useAudioPlayer() {
       const response = await fetch('/api/voice/synthesize', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ text: clean }),
       })
 
