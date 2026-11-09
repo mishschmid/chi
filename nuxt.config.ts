@@ -25,6 +25,11 @@ export default defineNuxtConfig({
     llmProvider: process.env.LLM_PROVIDER ?? 'openai',
     llmChatModel: process.env.LLM_CHAT_MODEL ?? 'gpt-4o',
     llmExtractionModel: process.env.LLM_EXTRACTION_MODEL ?? 'gpt-4o-mini',
+    betterAuthSecret: process.env.BETTER_AUTH_SECRET ?? '',
+    betterAuthUrl: process.env.BETTER_AUTH_URL ?? 'http://localhost:3000',
+    public: {
+      betterAuthUrl: process.env.BETTER_AUTH_URL ?? 'http://localhost:3000',
+    },
     openaiApiKey: process.env.OPENAI_API_KEY ?? '',
     anthropicApiKey: process.env.ANTHROPIC_API_KEY ?? '',
     openaiVoice: process.env.OPENAI_VOICE ?? 'nova',

@@ -4,7 +4,7 @@ import { conversations, messages } from '../../../database/schema'
 import { getCurrentUserId } from '../../../utils/currentUser'
 
 export default defineEventHandler(async (event) => {
-  const userId = getCurrentUserId(event)
+  const userId = await getCurrentUserId(event)
   const conversationId = getRouterParam(event, 'id')
 
   if (!conversationId) {

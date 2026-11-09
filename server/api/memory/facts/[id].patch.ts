@@ -1,5 +1,5 @@
 export default defineEventHandler(async (event) => {
-  const userId = getCurrentUserId(event)
+  const userId = await getCurrentUserId(event)
   const id = getRouterParam(event, 'id')
 
   if (!id) {

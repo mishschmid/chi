@@ -8,7 +8,7 @@ import { listFacts } from '../../../utils/memory/facts'
 import { extractFacts } from '../../../utils/memory/extract'
 
 export default defineEventHandler(async (event) => {
-  const userId = getCurrentUserId(event)
+  const userId = await getCurrentUserId(event)
   const conversationId = getRouterParam(event, 'id')
 
   if (!conversationId) {

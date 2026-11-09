@@ -1,8 +1,14 @@
 import type { H3Event } from 'h3'
+import { getOptionalUser } from './session'
 
-// TODO(auth): Replace with the real shared auth service (better-auth SSO) once implemented.
-// Every DB table with user data filters by this ID.
-export function getCurrentUserId(_event?: H3Event): string {
+export async function getCurrentUserId(event?: H3Event): Promise<string> {
+  if (event) {
+    const user = await getOptionalUser(event)
+    if (user?.id) {
+      return user.id
+    }
+  }
+
   const config = useRuntimeConfig()
   return (
     process.env.DEV_USER_ID ??

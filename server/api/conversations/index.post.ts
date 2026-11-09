@@ -3,7 +3,7 @@ import { conversations } from '../../database/schema'
 import { getCurrentUserId } from '../../utils/currentUser'
 
 export default defineEventHandler(async (event) => {
-  const userId = getCurrentUserId(event)
+  const userId = await getCurrentUserId(event)
 
   const [created] = await db
     .insert(conversations)

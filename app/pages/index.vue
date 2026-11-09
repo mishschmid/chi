@@ -3,7 +3,10 @@ import { ref, onMounted, nextTick, watch } from 'vue'
 import { useChat } from '~/composables/useChat'
 import { useAudioRecorder } from '~/composables/useAudioRecorder'
 import { useAudioPlayer } from '~/composables/useAudioPlayer'
+import { useAuth } from '~/composables/useAuth'
 import ChatMessage from '~/components/ChatMessage.vue'
+
+const { user, signOut } = useAuth()
 
 const {
   conversations,
@@ -122,6 +125,16 @@ async function handleSelect(id: string) {
         </div>
         <div v-if="conversations.length === 0" class="sidebar__empty">No conversations yet</div>
       </nav>
+
+      <div class="sidebar__footer">
+        <div class="user-info">
+          <span class="user-name">{{ user?.name || 'Account' }}</span>
+          <span class="user-email">{{ user?.email }}</span>
+        </div>
+        <button class="btn btn--subtle btn--logout" title="Sign out" @click="signOut">
+          Sign out
+        </button>
+      </div>
     </aside>
 
     <div v-if="isSidebarOpen" class="sidebar-backdrop" @click="isSidebarOpen = false" />
@@ -301,6 +314,44 @@ async function handleSelect(id: string) {
     font-size: 0.85rem;
     color: $text-muted;
     text-align: center;
+  }
+
+  &__footer {
+    padding: 0.75rem 1rem;
+    border-top: 1px solid $border-subtle;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+
+    .user-info {
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      font-size: 0.85rem;
+
+      .user-name {
+        font-weight: 600;
+        color: $text-primary;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .user-email {
+        font-size: 0.75rem;
+        color: $text-muted;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+    }
+
+    .btn--logout {
+      font-size: 0.8rem;
+      padding: 0.25rem 0.5rem;
+      color: #f87171;
+    }
   }
 }
 
