@@ -107,6 +107,7 @@ async function handleSelect(id: string) {
           <h2>Chi</h2>
         </div>
         <div class="sidebar__actions">
+          <NuxtLink to="/settings" class="sidebar__link">Settings</NuxtLink>
           <NuxtLink to="/memory" class="sidebar__link">Memory</NuxtLink>
           <button class="btn btn--primary" :disabled="isStreaming" @click="createConversation">
             + New

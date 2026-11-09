@@ -1,12 +1,9 @@
+import { getOpenAiKeyForUser } from '../../utils/aiKeys'
+import { getCurrentUserId } from '../../utils/currentUser'
+
 export default defineEventHandler(async (event) => {
-  const config = useRuntimeConfig()
-  const apiKey = (config.openaiApiKey as string | undefined) ?? ''
-  if (!apiKey) {
-    throw createError({
-      statusCode: 500,
-      statusMessage: 'Missing OPENAI_API_KEY for audio transcription',
-    })
-  }
+  const userId = await getCurrentUserId(event)
+  const apiKey = await getOpenAiKeyForUser(userId)
 
   const form = await readMultipartFormData(event)
   if (!form || form.length === 0) {

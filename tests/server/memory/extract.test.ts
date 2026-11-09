@@ -53,7 +53,7 @@ describe('memory fact extraction', () => {
     const addFactSpy = vi.spyOn(factsModule, 'addFact').mockResolvedValue({} as any)
     const updateFactSpy = vi.spyOn(factsModule, 'updateFact').mockResolvedValue({} as any)
 
-    vi.spyOn(llmModule, 'getLlm').mockReturnValue({
+    vi.spyOn(llmModule, 'getLlm').mockResolvedValue({
       name: 'openai',
       streamChat: vi.fn(),
       completeJson: vi.fn().mockResolvedValue({

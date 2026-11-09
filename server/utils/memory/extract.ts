@@ -61,7 +61,7 @@ Respond ONLY with valid JSON in this schema:
   "update": [{ "id": "existing-fact-id", "fact": "updated wording" }]
 }`
 
-  const llm = getLlm('extraction')
+  const llm = await getLlm('extraction', userId)
   const chatMessages: ChatMessage[] = [{ role: 'user', content: prompt }]
 
   let parsed: ExtractionResponse

@@ -72,7 +72,7 @@ export default defineEventHandler(async (event) => {
     })),
   ]
 
-  const llm = getLlm('chat')
+  const llm = await getLlm('chat', userId)
   const stream = llm.streamChat(chatMessages)
 
   // Set response headers for direct streaming

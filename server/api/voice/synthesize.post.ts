@@ -1,12 +1,10 @@
+import { getOpenAiKeyForUser } from '../../utils/aiKeys'
+import { getCurrentUserId } from '../../utils/currentUser'
+
 export default defineEventHandler(async (event) => {
+  const userId = await getCurrentUserId(event)
+  const apiKey = await getOpenAiKeyForUser(userId)
   const config = useRuntimeConfig()
-  const apiKey = (config.openaiApiKey as string | undefined) ?? ''
-  if (!apiKey) {
-    throw createError({
-      statusCode: 500,
-      statusMessage: 'Missing OPENAI_API_KEY for speech synthesis',
-    })
-  }
 
   const body = await readBody<{ text?: unknown; voice?: unknown }>(event)
   const text = typeof body?.text === 'string' ? body.text.trim() : ''
