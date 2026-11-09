@@ -4,7 +4,7 @@ import { conversations, messages } from '../../../database/schema'
 import { getCurrentUserId } from '../../../utils/currentUser'
 import { buildSystemPrompt } from '../../../utils/chat/prompt'
 import { getLlm, type ChatMessage } from '../../../utils/llm'
-import { listFacts } from '../../../utils/memory/facts'
+import { searchRelevantFacts } from '../../../utils/memory/search'
 import { extractFacts } from '../../../utils/memory/extract'
 
 export default defineEventHandler(async (event) => {
@@ -51,8 +51,8 @@ export default defineEventHandler(async (event) => {
     })
     .returning()
 
-  // Load existing profile facts & last 30 messages for prompt context
-  const facts = await listFacts(userId)
+  // Search profile facts relevant to the user query & conversation context
+  const facts = await searchRelevantFacts(userId, content, 8)
   const recentMessages = await db
     .select()
     .from(messages)

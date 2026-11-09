@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, uuid, boolean, index } from 'drizzle-orm/pg-core'
+import { pgTable, text, timestamp, uuid, boolean, index, vector } from 'drizzle-orm/pg-core'
 
 // ─── better-auth tables ───────────────────────────────────────────────────
 // Column names and types match better-auth's standard Postgres schema
@@ -102,6 +102,7 @@ export const profileFacts = pgTable(
     category: text('category', {
       enum: ['identity', 'goal', 'preference', 'person', 'health', 'other'],
     }).notNull(),
+    embedding: vector('embedding', { dimensions: 1536 }),
     sourceMessageId: uuid('source_message_id').references(() => messages.id, {
       onDelete: 'set null',
     }),
