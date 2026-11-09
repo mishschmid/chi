@@ -1,0 +1,11 @@
+node_modules
+.output
+.nuxt
+dist
+postgres-data
+.git
+.env
+.env.*
+!.env.example
+tests
+.playwright-mcp
