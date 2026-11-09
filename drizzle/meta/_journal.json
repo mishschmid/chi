@@ -15,6 +15,13 @@
       "when": 1794203006355,
       "tag": "0001_round_the_renegades",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1794203798467,
+      "tag": "0002_ambiguous_the_twelve",
+      "breakpoints": true
     }
   ]
 }
