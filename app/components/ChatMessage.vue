@@ -1,15 +1,39 @@
 <script setup lang="ts">
-defineProps<{
+import { computed } from 'vue'
+
+const props = defineProps<{
   role: 'user' | 'assistant' | 'system'
   content: string
   model?: string | null
+  totalTokens?: number | null
+  costUsd?: string | number | null
 }>()
+
+const formattedCost = computed(() => {
+  if (props.costUsd === null || props.costUsd === undefined) return null
+  const num = Number(props.costUsd)
+  if (isNaN(num)) return null
+  if (num < 0.0001) return '<$0.0001'
+  return `$${num.toFixed(4)}`
+})
 </script>
 
 <template>
   <div :class="['message', `message--${role}`]">
     <div class="message__bubble">
-      <div class="message__role">{{ role === 'user' ? 'You' : 'Chi' }}</div>
+      <div class="message__header">
+        <span class="message__role">{{ role === 'user' ? 'You' : 'Chi' }}</span>
+        <span
+          v-if="role === 'assistant' && (totalTokens || formattedCost)"
+          class="message__meta"
+          :title="`Model: ${model || 'default'}`"
+        >
+          <span v-if="totalTokens">{{ totalTokens }} tokens</span>
+          <span v-if="totalTokens && formattedCost" class="meta-dot">·</span>
+          <span v-if="formattedCost" class="cost-tag">{{ formattedCost }}</span>
+        </span>
+      </div>
+
       <div class="message__content">{{ content }}</div>
     </div>
   </div>
@@ -57,12 +81,40 @@ defineProps<{
     word-break: break-word;
   }
 
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.35rem;
+  }
+
   &__role {
     font-size: 0.75rem;
     font-weight: 600;
-    margin-bottom: 0.25rem;
     text-transform: uppercase;
     letter-spacing: 0.05em;
+  }
+
+  &__meta {
+    font-size: 0.7rem;
+    color: $text-muted;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-family: monospace;
+    background-color: rgba(255, 255, 255, 0.04);
+    padding: 0.1rem 0.35rem;
+    border-radius: $radius-sm;
+
+    .cost-tag {
+      color: $accent;
+      font-weight: 500;
+    }
+
+    .meta-dot {
+      opacity: 0.5;
+    }
   }
 
   &__content {

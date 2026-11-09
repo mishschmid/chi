@@ -36,9 +36,18 @@ export function createOpenAiProvider(apiKey: string, defaultModel = 'gpt-4o'): L
           temperature: options?.temperature ?? 0.7,
           max_tokens: options?.maxTokens,
           stream: true,
+          stream_options: { include_usage: true },
         })
 
         for await (const chunk of stream) {
+          if (chunk.usage && options?.onUsage) {
+            options.onUsage({
+              promptTokens: chunk.usage.prompt_tokens,
+              completionTokens: chunk.usage.completion_tokens,
+              totalTokens: chunk.usage.total_tokens,
+              model: options?.model ?? defaultModel,
+            })
+          }
           const text = chunk.choices[0]?.delta?.content
           if (text) {
             yield text
@@ -96,9 +105,18 @@ export function createOpenAiProvider(apiKey: string, defaultModel = 'gpt-4o'): L
           temperature: options?.temperature ?? 0.7,
           max_tokens: options?.maxTokens,
           stream: true,
+          stream_options: { include_usage: true },
         })
 
         for await (const chunk of secondStream) {
+          if (chunk.usage && options?.onUsage) {
+            options.onUsage({
+              promptTokens: chunk.usage.prompt_tokens,
+              completionTokens: chunk.usage.completion_tokens,
+              totalTokens: chunk.usage.total_tokens,
+              model: options?.model ?? defaultModel,
+            })
+          }
           const text = chunk.choices[0]?.delta?.content
           if (text) {
             yield text
@@ -108,6 +126,15 @@ export function createOpenAiProvider(apiKey: string, defaultModel = 'gpt-4o'): L
       }
 
       // If no tool was called, yield the direct message content
+      if (firstResponse.usage && options?.onUsage) {
+        options.onUsage({
+          promptTokens: firstResponse.usage.prompt_tokens,
+          completionTokens: firstResponse.usage.completion_tokens,
+          totalTokens: firstResponse.usage.total_tokens,
+          model: options?.model ?? defaultModel,
+        })
+      }
+
       if (choice.message.content) {
         yield choice.message.content
       }

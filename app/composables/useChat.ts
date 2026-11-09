@@ -11,6 +11,10 @@ export interface MessageItem {
   role: 'user' | 'assistant' | 'system'
   content: string
   model?: string | null
+  promptTokens?: number | null
+  completionTokens?: number | null
+  totalTokens?: number | null
+  costUsd?: string | number | null
   createdAt?: string
 }
 
@@ -116,6 +120,10 @@ export function useChat() {
           target.content += text
         }
       }
+
+      // Refresh messages list to pick up usage tokens and cost
+      const updatedMsgs = await $fetch<MessageItem[]>(`/api/conversations/${convId}/messages`)
+      messages.value = updatedMsgs
 
       // Refresh conversations list to pick up updated title & order
       const updatedList = await $fetch<ConversationItem[]>('/api/conversations')

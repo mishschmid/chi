@@ -10,6 +10,12 @@ export interface ChatOptions {
   temperature?: number
   maxTokens?: number
   enableTools?: boolean
+  onUsage?: (usage: {
+    promptTokens: number
+    completionTokens: number
+    totalTokens: number
+    model: string
+  }) => void
 }
 
 export interface LlmProvider {

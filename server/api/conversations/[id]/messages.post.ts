@@ -4,6 +4,7 @@ import { conversations, messages } from '../../../database/schema'
 import { getCurrentUserId } from '../../../utils/currentUser'
 import { buildSystemPrompt } from '../../../utils/chat/prompt'
 import { getLlm, type ChatMessage } from '../../../utils/llm'
+import { calculateCost } from '../../../utils/llm/pricing'
 import { searchRelevantFacts } from '../../../utils/memory/search'
 import { extractFacts } from '../../../utils/memory/extract'
 
@@ -72,8 +73,27 @@ export default defineEventHandler(async (event) => {
     })),
   ]
 
+  let recordedUsage: {
+    promptTokens: number
+    completionTokens: number
+    totalTokens: number
+    costUsd: number
+    model: string
+  } | null = null
+
   const llm = await getLlm('chat', userId)
-  const stream = llm.streamChat(chatMessages)
+  const stream = llm.streamChat(chatMessages, {
+    onUsage(u) {
+      const cost = calculateCost(u.model, u.promptTokens, u.completionTokens)
+      recordedUsage = {
+        promptTokens: u.promptTokens,
+        completionTokens: u.completionTokens,
+        totalTokens: u.totalTokens,
+        costUsd: cost,
+        model: u.model,
+      }
+    },
+  })
 
   // Set response headers for direct streaming
   setHeader(event, 'content-type', 'text/plain; charset=utf-8')
@@ -98,7 +118,11 @@ export default defineEventHandler(async (event) => {
             conversationId,
             role: 'assistant',
             content: fullAssistantReply,
-            model: llm.name,
+            model: recordedUsage?.model ?? llm.name,
+            promptTokens: recordedUsage?.promptTokens ?? null,
+            completionTokens: recordedUsage?.completionTokens ?? null,
+            totalTokens: recordedUsage?.totalTokens ?? null,
+            costUsd: recordedUsage ? String(recordedUsage.costUsd) : null,
           })
 
           const updateValues: { updatedAt: Date; title?: string } = {

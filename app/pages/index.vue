@@ -174,6 +174,8 @@ async function handleSelect(id: string) {
           :role="msg.role"
           :content="msg.content"
           :model="msg.model"
+          :total-tokens="msg.totalTokens"
+          :cost-usd="msg.costUsd"
         />
       </div>
 

@@ -38,6 +38,10 @@ describe('memory fact extraction', () => {
         role: 'user',
         content: 'I want to run a 5k next spring. Also I eat bananas right now.',
         model: null,
+        promptTokens: null,
+        completionTokens: null,
+        totalTokens: null,
+        costUsd: null,
         createdAt: new Date(),
       },
     ]

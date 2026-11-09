@@ -1,4 +1,14 @@
-import { pgTable, text, timestamp, uuid, boolean, index, vector } from 'drizzle-orm/pg-core'
+import {
+  pgTable,
+  text,
+  timestamp,
+  uuid,
+  boolean,
+  integer,
+  numeric,
+  index,
+  vector,
+} from 'drizzle-orm/pg-core'
 
 // ─── better-auth tables ───────────────────────────────────────────────────
 // Column names and types match better-auth's standard Postgres schema
@@ -86,6 +96,10 @@ export const messages = pgTable(
     role: text('role', { enum: ['user', 'assistant', 'system'] }).notNull(),
     content: text('content').notNull(),
     model: text('model'),
+    promptTokens: integer('prompt_tokens'),
+    completionTokens: integer('completion_tokens'),
+    totalTokens: integer('total_tokens'),
+    costUsd: numeric('cost_usd', { precision: 10, scale: 6 }),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   },
   (table) => [index('messages_conversation_created_idx').on(table.conversationId, table.createdAt)]
