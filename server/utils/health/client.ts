@@ -41,7 +41,7 @@ export interface HealthClient {
 
 export function createHealthClient(): HealthClient {
   const config = useRuntimeConfig()
-  const baseUrl = (config.sansaApiUrl as string) || 'http://localhost:3000'
+  const baseUrl = (config.sansaApiUrl as string) || 'http://localhost:4444'
   const secret = (config.sansaServiceSecret as string) || ''
   const userId = (config.sansaUserId as string) || ''
 

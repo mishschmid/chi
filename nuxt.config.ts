@@ -34,7 +34,7 @@ export default defineNuxtConfig({
     anthropicApiKey: process.env.ANTHROPIC_API_KEY ?? '',
     openaiVoice: process.env.OPENAI_VOICE ?? 'nova',
     openaiTtsModel: process.env.OPENAI_TTS_MODEL ?? 'tts-1',
-    sansaApiUrl: process.env.SANSA_API_URL ?? 'http://localhost:3000',
+    sansaApiUrl: process.env.SANSA_API_URL ?? 'http://localhost:4444',
     sansaServiceSecret: process.env.SANSA_SERVICE_SECRET ?? '',
     sansaUserId: process.env.SANSA_USER_ID ?? '',
   },
