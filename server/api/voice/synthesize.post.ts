@@ -1,5 +1,3 @@
-import OpenAI from 'openai'
-
 export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig()
   const apiKey = (config.openaiApiKey as string | undefined) ?? ''
@@ -17,36 +15,47 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, statusMessage: 'Text content is required' })
   }
 
-  // Cap length to avoid excessive billing and latency
   const cleanText = text.slice(0, 4000)
-
   const voice =
     typeof body?.voice === 'string' && body.voice
       ? body.voice
       : (config.openaiVoice as string) || 'nova'
-
   const model = (config.openaiTtsModel as string) || 'tts-1'
 
-  const client = new OpenAI({ apiKey })
-
   try {
-    const response = await client.audio.speech.create({
-      model,
-      voice: voice as any,
-      input: cleanText,
-      response_format: 'mp3',
+    const res = await fetch('https://api.openai.com/v1/audio/speech', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model,
+        voice,
+        input: cleanText,
+        response_format: 'mp3',
+      }),
     })
+
+    if (!res.ok) {
+      const errText = await res.text()
+      console.error('TTS API error:', res.status, errText)
+      throw createError({
+        statusCode: res.status,
+        statusMessage: `TTS error: ${errText}`,
+      })
+    }
 
     setHeader(event, 'content-type', 'audio/mpeg')
     setHeader(event, 'cache-control', 'no-cache')
 
-    const arrayBuffer = await response.arrayBuffer()
+    const arrayBuffer = await res.arrayBuffer()
     return Buffer.from(arrayBuffer)
   } catch (err: any) {
     console.error('Speech synthesis error:', err)
     throw createError({
-      statusCode: 500,
-      statusMessage: err?.message || 'Failed to synthesize speech',
+      statusCode: err?.statusCode || 500,
+      statusMessage: err?.statusMessage || err?.message || 'Failed to synthesize speech',
     })
   }
 })
