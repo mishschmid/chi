@@ -20,7 +20,7 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, statusMessage: 'Audio payload is empty' })
   }
 
-  const client = new OpenAI({ apiKey, fetch: globalThis.fetch })
+  const client = new OpenAI({ apiKey })
 
   try {
     const filename = audioPart.filename || 'recording.webm'

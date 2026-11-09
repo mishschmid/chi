@@ -27,7 +27,7 @@ export default defineEventHandler(async (event) => {
 
   const model = (config.openaiTtsModel as string) || 'tts-1'
 
-  const client = new OpenAI({ apiKey, fetch: globalThis.fetch })
+  const client = new OpenAI({ apiKey })
 
   try {
     const response = await client.audio.speech.create({
