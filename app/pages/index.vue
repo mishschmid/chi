@@ -5,8 +5,10 @@ import { useAudioRecorder } from '~/composables/useAudioRecorder'
 import { useAudioPlayer } from '~/composables/useAudioPlayer'
 import { useAuth } from '~/composables/useAuth'
 import ChatMessage from '~/components/ChatMessage.vue'
+import CostBadge from '~/components/CostBadge.vue'
 
 const { user, signOut } = useAuth()
+const costBadgeRef = ref<InstanceType<typeof CostBadge> | null>(null)
 
 const {
   conversations,
@@ -44,6 +46,7 @@ const autoVoiceReply = ref(true)
 
 onMounted(async () => {
   await loadConversations()
+  costBadgeRef.value?.refresh()
   scrollToBottom()
 })
 
@@ -68,6 +71,7 @@ async function handleSend() {
   inputMessage.value = ''
   stopSpeaking()
   await sendMessage(text)
+  costBadgeRef.value?.refresh()
 }
 
 async function toggleVoiceRecording() {
@@ -76,6 +80,7 @@ async function toggleVoiceRecording() {
     const transcribedText = await stopRecording()
     if (transcribedText) {
       const response = await sendMessage(transcribedText)
+      costBadgeRef.value?.refresh()
       if (response && autoVoiceReply.value) {
         await speak(response)
       }
@@ -151,6 +156,7 @@ async function handleSelect(id: string) {
           }}
         </span>
         <div class="chat-header__controls">
+          <CostBadge ref="costBadgeRef" />
           <button
             v-if="isPlaying || isSynthesizing"
             class="btn btn--voice-status"
