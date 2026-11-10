@@ -12,7 +12,15 @@ export default defineNuxtConfig({
           name: 'viewport',
           content: 'width=device-width, initial-scale=1, interactive-widget=resizes-content',
         },
-        { name: 'theme-color', content: '#0f1115' },
+        { name: 'theme-color', content: '#12100e' },
+      ],
+      link: [
+        { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
+        { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },
+        {
+          rel: 'stylesheet',
+          href: 'https://fonts.googleapis.com/css2?family=Young+Serif&family=Geist+Mono:wght@400;500&display=swap',
+        },
       ],
     },
   },

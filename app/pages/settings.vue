@@ -184,9 +184,9 @@ onMounted(() => {
 }
 
 .success-banner {
-  background-color: rgba(45, 212, 191, 0.15);
+  background-color: rgba($accent, 0.15);
   color: $accent;
-  border: 1px solid rgba(45, 212, 191, 0.3);
+  border: 1px solid rgba($accent, 0.3);
   padding: 0.6rem 0.8rem;
   font-size: 0.85rem;
   border-radius: $radius-sm;
@@ -245,9 +245,9 @@ onMounted(() => {
   letter-spacing: 0.05em;
 
   &--active {
-    background-color: rgba(45, 212, 191, 0.15);
+    background-color: rgba($accent, 0.15);
     color: $accent;
-    border: 1px solid rgba(45, 212, 191, 0.3);
+    border: 1px solid rgba($accent, 0.3);
   }
 
   &--inactive {

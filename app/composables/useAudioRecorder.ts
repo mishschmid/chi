@@ -2,9 +2,30 @@ export function useAudioRecorder() {
   const isRecording = ref(false)
   const isTranscribing = ref(false)
   const error = ref<string | null>(null)
+  const analyser = shallowRef<AnalyserNode | null>(null)
 
   let mediaRecorder: MediaRecorder | null = null
   let audioChunks: Blob[] = []
+  let audioContext: AudioContext | null = null
+
+  function attachAnalyser(stream: MediaStream) {
+    try {
+      audioContext = new AudioContext()
+      const node = audioContext.createAnalyser()
+      node.fftSize = 1024
+      node.smoothingTimeConstant = 0.6
+      audioContext.createMediaStreamSource(stream).connect(node)
+      analyser.value = node
+    } catch {
+      analyser.value = null
+    }
+  }
+
+  function releaseAnalyser() {
+    analyser.value = null
+    audioContext?.close().catch(() => {})
+    audioContext = null
+  }
 
   async function startRecording(): Promise<boolean> {
     error.value = null
@@ -31,6 +52,7 @@ export function useAudioRecorder() {
         }
       }
 
+      attachAnalyser(stream)
       mediaRecorder.start(100)
       isRecording.value = true
       return true
@@ -51,6 +73,7 @@ export function useAudioRecorder() {
       mediaRecorder!.onstop = async () => {
         // Stop all active microphone audio tracks
         mediaRecorder?.stream?.getTracks().forEach((track) => track.stop())
+        releaseAnalyser()
         isRecording.value = false
 
         if (audioChunks.length === 0) {
@@ -94,6 +117,7 @@ export function useAudioRecorder() {
       mediaRecorder.onstop = null
       mediaRecorder.stream?.getTracks().forEach((track) => track.stop())
       mediaRecorder.stop()
+      releaseAnalyser()
       isRecording.value = false
       audioChunks = []
     }
@@ -103,6 +127,7 @@ export function useAudioRecorder() {
     isRecording,
     isTranscribing,
     error,
+    analyser,
     startRecording,
     stopRecording,
     cancelRecording,

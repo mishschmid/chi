@@ -1,11 +1,15 @@
 <script setup lang="ts">
-import { ref, onMounted, nextTick, watch } from 'vue'
+import { ref, computed, onMounted, nextTick, watch } from 'vue'
 import { useChat } from '~/composables/useChat'
 import { useAudioRecorder } from '~/composables/useAudioRecorder'
 import { useAudioPlayer } from '~/composables/useAudioPlayer'
 import { useAuth } from '~/composables/useAuth'
 import ChatMessage from '~/components/ChatMessage.vue'
 import CostBadge from '~/components/CostBadge.vue'
+import AppSidebar from '~/components/AppSidebar.vue'
+import AmbientBackground from '~/components/AmbientBackground.vue'
+import VoiceWaveform from '~/components/VoiceWaveform.vue'
+import MicIcon from '~/components/MicIcon.vue'
 
 const { user, signOut } = useAuth()
 const costBadgeRef = ref<InstanceType<typeof CostBadge> | null>(null)
@@ -26,6 +30,7 @@ const {
   isRecording,
   isTranscribing,
   error: recorderError,
+  analyser,
   startRecording,
   stopRecording,
   cancelRecording,
@@ -43,6 +48,12 @@ const inputMessage = ref('')
 const messagesContainer = ref<HTMLElement | null>(null)
 const isSidebarOpen = ref(false)
 const autoVoiceReply = ref(true)
+
+const backgroundEnergy = computed(() => {
+  if (isStreaming.value || isTranscribing.value) return 1
+  if (isRecording.value || isPlaying.value) return 0.6
+  return 0
+})
 
 onMounted(async () => {
   await loadConversations()
@@ -106,46 +117,23 @@ async function handleSelect(id: string) {
 
 <template>
   <div class="chat-layout">
-    <aside :class="['sidebar', { 'sidebar--open': isSidebarOpen }]">
-      <div class="sidebar__header">
-        <div class="sidebar__logo">
-          <h2>Chi</h2>
-        </div>
-        <div class="sidebar__actions">
-          <NuxtLink to="/settings" class="sidebar__link">Settings</NuxtLink>
-          <NuxtLink to="/memory" class="sidebar__link">Memory</NuxtLink>
-          <button class="btn btn--primary" :disabled="isStreaming" @click="createConversation">
-            + New
-          </button>
-        </div>
-      </div>
-
-      <nav class="sidebar__list">
-        <div
-          v-for="c in conversations"
-          :key="c.id"
-          :class="['sidebar__item', { 'sidebar__item--active': c.id === activeConversationId }]"
-          @click="handleSelect(c.id)"
-        >
-          <span class="sidebar__item-title">{{ c.title || 'Untitled chat' }}</span>
-        </div>
-        <div v-if="conversations.length === 0" class="sidebar__empty">No conversations yet</div>
-      </nav>
-
-      <div class="sidebar__footer">
-        <div class="user-info">
-          <span class="user-name">{{ user?.name || 'Account' }}</span>
-          <span class="user-email">{{ user?.email }}</span>
-        </div>
-        <button class="btn btn--subtle btn--logout" title="Sign out" @click="signOut">
-          Sign out
-        </button>
-      </div>
-    </aside>
+    <AppSidebar
+      :conversations="conversations"
+      :active-id="activeConversationId"
+      :disabled="isStreaming"
+      :open="isSidebarOpen"
+      :user="user"
+      @select="handleSelect"
+      @create="createConversation"
+      @sign-out="signOut"
+    />
 
     <div v-if="isSidebarOpen" class="sidebar-backdrop" @click="isSidebarOpen = false" />
 
     <main class="chat-main">
+      <ClientOnly>
+        <AmbientBackground :energy="backgroundEnergy" />
+      </ClientOnly>
       <header class="chat-header">
         <button class="btn btn--icon mobile-only" @click="isSidebarOpen = !isSidebarOpen">
           ☰
@@ -182,6 +170,7 @@ async function handleSelect(id: string) {
           :model="msg.model"
           :total-tokens="msg.totalTokens"
           :cost-usd="msg.costUsd"
+          :thinking="isStreaming && msg.role === 'assistant' && idx === messages.length - 1"
         />
       </div>
 
@@ -200,12 +189,17 @@ async function handleSelect(id: string) {
           :title="isRecording ? 'Click to stop and send' : 'Hold or click to speak'"
           @click="toggleVoiceRecording"
         >
-          <span v-if="isRecording" class="pulse-icon">●</span>
-          <span v-else-if="isTranscribing" class="transcribing-icon">⏳</span>
-          <span v-else class="mic-icon">🎙</span>
+          <span v-if="isRecording" class="stop-icon" />
+          <span v-else-if="isTranscribing" class="spinner" />
+          <MicIcon v-else />
         </button>
 
+        <div v-if="isRecording" class="voice-pill" @click="toggleVoiceRecording">
+          <VoiceWaveform :analyser="analyser" />
+        </div>
+
         <textarea
+          v-else
           v-model="inputMessage"
           class="chat-textarea"
           rows="1"
@@ -235,135 +229,6 @@ async function handleSelect(id: string) {
   background-color: $bg-app;
 }
 
-.sidebar {
-  width: 260px;
-  background-color: $bg-surface;
-  border-right: 1px solid $border-subtle;
-  display: flex;
-  flex-direction: column;
-  z-index: 20;
-
-  @media (max-width: 768px) {
-    position: fixed;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    transform: translateX(-100%);
-    transition: transform 0.2s ease;
-
-    &--open {
-      transform: translateX(0);
-    }
-  }
-
-  &__header {
-    padding: 1rem;
-    border-bottom: 1px solid $border-subtle;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-
-  &__logo h2 {
-    font-size: 1.25rem;
-    font-weight: 700;
-    color: $accent;
-  }
-
-  &__actions {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-  }
-
-  &__link {
-    color: $text-secondary;
-    text-decoration: none;
-    font-size: 0.85rem;
-    padding: 0.35rem 0.5rem;
-    border-radius: $radius-sm;
-
-    &:hover {
-      color: $text-primary;
-      background-color: $bg-surface-elevated;
-    }
-  }
-
-  &__list {
-    flex: 1;
-    overflow-y: auto;
-    padding: 0.5rem;
-  }
-
-  &__item {
-    padding: 0.6rem 0.75rem;
-    border-radius: $radius-sm;
-    cursor: pointer;
-    margin-bottom: 0.25rem;
-    color: $text-secondary;
-    font-size: 0.9rem;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-
-    &:hover {
-      background-color: $bg-surface-elevated;
-      color: $text-primary;
-    }
-
-    &--active {
-      background-color: $bg-surface-elevated;
-      color: $text-primary;
-      font-weight: 500;
-    }
-  }
-
-  &__empty {
-    padding: 1rem;
-    font-size: 0.85rem;
-    color: $text-muted;
-    text-align: center;
-  }
-
-  &__footer {
-    padding: 0.75rem 1rem;
-    border-top: 1px solid $border-subtle;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 0.5rem;
-
-    .user-info {
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-      font-size: 0.85rem;
-
-      .user-name {
-        font-weight: 600;
-        color: $text-primary;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
-
-      .user-email {
-        font-size: 0.75rem;
-        color: $text-muted;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
-    }
-
-    .btn--logout {
-      font-size: 0.8rem;
-      padding: 0.25rem 0.5rem;
-      color: #f87171;
-    }
-  }
-}
-
 .sidebar-backdrop {
   position: fixed;
   inset: 0;
@@ -386,7 +251,10 @@ async function handleSelect(id: string) {
   align-items: center;
   padding: 0 1rem;
   gap: 0.75rem;
-  background-color: $bg-app;
+  background-color: rgba($bg-app, 0.55);
+  backdrop-filter: blur(12px);
+  position: relative;
+  z-index: 1;
 
   &__title {
     font-weight: 600;
@@ -420,6 +288,8 @@ async function handleSelect(id: string) {
   padding: 1rem;
   display: flex;
   flex-direction: column;
+  position: relative;
+  z-index: 1;
 }
 
 .messages-empty {
@@ -446,6 +316,8 @@ async function handleSelect(id: string) {
   font-size: 0.85rem;
   margin: 0 1rem;
   border-radius: $radius-sm;
+  position: relative;
+  z-index: 1;
 }
 
 .chat-input-area {
@@ -454,7 +326,47 @@ async function handleSelect(id: string) {
   display: flex;
   gap: 0.5rem;
   align-items: flex-end;
-  background-color: $bg-app;
+  background-color: rgba($bg-app, 0.55);
+  backdrop-filter: blur(12px);
+  position: relative;
+  z-index: 1;
+}
+
+.voice-pill {
+  flex: 1;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: $radius-full;
+  border: 1px solid $border-strong;
+  background-color: $bg-surface-elevated;
+  box-shadow:
+    0 8px 24px rgba(0, 0, 0, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  cursor: pointer;
+}
+
+.stop-icon {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  background-color: currentColor;
+}
+
+.spinner {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid rgba($accent, 0.25);
+  border-top-color: $accent;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .btn-voice {
@@ -477,10 +389,11 @@ async function handleSelect(id: string) {
   }
 
   &--recording {
-    background-color: #ef4444 !important;
-    border-color: #f87171 !important;
+    background-color: $accent !important;
+    border-color: $accent-hover !important;
     color: #fff !important;
-    animation: pulse 1.2s infinite;
+    box-shadow: 0 0 0 0 rgba($accent, 0.5);
+    animation: ring 1.6s ease-out infinite;
   }
 
   &--transcribing {
@@ -573,6 +486,15 @@ async function handleSelect(id: string) {
 
   @media (max-width: 768px) {
     display: inline-flex;
+  }
+}
+
+@keyframes ring {
+  0% {
+    box-shadow: 0 0 0 0 rgba($accent, 0.5);
+  }
+  100% {
+    box-shadow: 0 0 0 12px rgba($accent, 0);
   }
 }
 

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import ThinkingIndicator from '~/components/ThinkingIndicator.vue'
 
 const props = defineProps<{
   role: 'user' | 'assistant' | 'system'
@@ -7,6 +8,7 @@ const props = defineProps<{
   model?: string | null
   totalTokens?: number | null
   costUsd?: string | number | null
+  thinking?: boolean
 }>()
 
 const formattedCost = computed(() => {
@@ -34,7 +36,10 @@ const formattedCost = computed(() => {
         </span>
       </div>
 
-      <div class="message__content">{{ content }}</div>
+      <ThinkingIndicator v-if="thinking && !content" />
+      <div v-else :class="['message__content', { 'message__content--streaming': thinking }]">
+        {{ content }}
+      </div>
     </div>
   </div>
 </template>
@@ -63,7 +68,8 @@ const formattedCost = computed(() => {
     justify-content: flex-start;
 
     .message__bubble {
-      background-color: $bg-surface;
+      background-color: rgba($bg-surface, 0.75);
+      backdrop-filter: blur(8px);
       color: $text-primary;
       border-top-left-radius: $radius-sm;
       border: 1px solid $border-subtle;
@@ -121,6 +127,27 @@ const formattedCost = computed(() => {
     font-size: 0.95rem;
     line-height: 1.5;
     white-space: pre-wrap;
+
+    &--streaming::after {
+      content: '';
+      display: inline-block;
+      width: 0.5em;
+      height: 0.5em;
+      margin-left: 0.3em;
+      border-radius: 50%;
+      background-color: $accent;
+      animation: caret 1s ease-in-out infinite;
+    }
+  }
+}
+
+@keyframes caret {
+  0%,
+  100% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 1;
   }
 }
 </style>
