@@ -10,6 +10,7 @@ import AppSidebar from '~/components/AppSidebar.vue'
 import AmbientBackground from '~/components/AmbientBackground.vue'
 import VoiceWaveform from '~/components/VoiceWaveform.vue'
 import MicIcon from '~/components/MicIcon.vue'
+import SoundWave from '~/components/SoundWave.vue'
 
 const { user, signOut } = useAuth()
 const costBadgeRef = ref<InstanceType<typeof CostBadge> | null>(null)
@@ -53,6 +54,15 @@ const backgroundEnergy = computed(() => {
   if (isStreaming.value || isTranscribing.value) return 1
   if (isRecording.value || isPlaying.value) return 0.6
   return 0
+})
+
+const lastAssistantIndex = computed(() => {
+  for (let i = messages.value.length - 1; i >= 0; i--) {
+    if (messages.value[i]?.role === 'assistant') {
+      return i
+    }
+  }
+  return -1
 })
 
 onMounted(async () => {
@@ -151,7 +161,9 @@ async function handleSelect(id: string) {
             title="Stop Chi speaking"
             @click="stopSpeaking"
           >
-            🔊 Speaking<span class="desktop-only"> (Click to stop)</span>
+            <SoundWave size="sm" />
+            <span>Speaking</span>
+            <span class="desktop-only"> (Click to stop)</span>
           </button>
           <NuxtLink to="/memory" class="btn btn--subtle mobile-only">Memory</NuxtLink>
         </div>
@@ -171,6 +183,12 @@ async function handleSelect(id: string) {
           :total-tokens="msg.totalTokens"
           :cost-usd="msg.costUsd"
           :thinking="isStreaming && msg.role === 'assistant' && idx === messages.length - 1"
+          :speaking="
+            (isPlaying || isSynthesizing) &&
+            msg.role === 'assistant' &&
+            idx === lastAssistantIndex
+          "
+          @stop-speaking="stopSpeaking"
         />
       </div>
 
@@ -280,15 +298,23 @@ async function handleSelect(id: string) {
 }
 
 .btn--voice-status {
-  background-color: rgba($accent, 0.15);
+  background-color: rgba($accent, 0.12);
   color: $accent;
   border: 1px solid rgba($accent, 0.3);
   font-size: 0.8rem;
   border-radius: $radius-full;
-  padding: 0.25rem 0.75rem;
-  animation: pulse 1.8s infinite;
+  padding: 0.25rem 0.65rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
   white-space: nowrap;
   flex-shrink: 0;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background-color: rgba($accent, 0.22);
+    border-color: $accent;
+  }
 }
 
 .messages-list {
