@@ -85,6 +85,7 @@ const formattedCost = computed(() => {
     padding: 0.75rem 1rem;
     border-radius: $radius-lg;
     word-break: break-word;
+    overflow-wrap: anywhere;
   }
 
   &__header {

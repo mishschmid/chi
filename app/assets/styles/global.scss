@@ -1,7 +1,32 @@
+:root,
+html {
+  color-scheme: dark;
+}
+
 * {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
+  scrollbar-width: thin;
+  scrollbar-color: $border-strong transparent;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: $border-strong;
+  border-radius: $radius-full;
+
+  &:hover {
+    background: $text-muted;
+  }
 }
 
 html,

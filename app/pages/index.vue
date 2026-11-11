@@ -151,7 +151,7 @@ async function handleSelect(id: string) {
             title="Stop Chi speaking"
             @click="stopSpeaking"
           >
-            🔊 Speaking (Click to stop)
+            🔊 Speaking<span class="desktop-only"> (Click to stop)</span>
           </button>
           <NuxtLink to="/memory" class="btn btn--subtle mobile-only">Memory</NuxtLink>
         </div>
@@ -224,7 +224,9 @@ async function handleSelect(id: string) {
 .chat-layout {
   display: flex;
   height: 100vh;
-  width: 100vw;
+  height: 100dvh;
+  width: 100%;
+  max-width: 100vw;
   overflow: hidden;
   background-color: $bg-app;
 }
@@ -242,6 +244,8 @@ async function handleSelect(id: string) {
   flex-direction: column;
   height: 100%;
   position: relative;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .chat-header {
@@ -255,6 +259,7 @@ async function handleSelect(id: string) {
   backdrop-filter: blur(12px);
   position: relative;
   z-index: 1;
+  min-width: 0;
 
   &__title {
     font-weight: 600;
@@ -263,12 +268,14 @@ async function handleSelect(id: string) {
     text-overflow: ellipsis;
     white-space: nowrap;
     flex: 1;
+    min-width: 0;
   }
 
   &__controls {
     display: flex;
     align-items: center;
     gap: 0.5rem;
+    flex-shrink: 0;
   }
 }
 
@@ -280,11 +287,14 @@ async function handleSelect(id: string) {
   border-radius: $radius-full;
   padding: 0.25rem 0.75rem;
   animation: pulse 1.8s infinite;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .messages-list {
   flex: 1;
   overflow-y: auto;
+  overflow-x: hidden;
   padding: 1rem;
   display: flex;
   flex-direction: column;
@@ -330,6 +340,7 @@ async function handleSelect(id: string) {
   backdrop-filter: blur(12px);
   position: relative;
   z-index: 1;
+  min-width: 0;
 }
 
 .voice-pill {
@@ -372,6 +383,7 @@ async function handleSelect(id: string) {
 .btn-voice {
   width: 42px;
   height: 42px;
+  flex-shrink: 0;
   border-radius: $radius-full;
   border: 1px solid $border-subtle;
   background-color: $bg-surface;
@@ -409,6 +421,7 @@ async function handleSelect(id: string) {
 
 .chat-textarea {
   flex: 1;
+  min-width: 0;
   background-color: $bg-input;
   color: $text-primary;
   border: 1px solid $border-subtle;
@@ -458,6 +471,7 @@ async function handleSelect(id: string) {
     font-weight: 600;
     height: 40px;
     padding: 0 1rem;
+    flex-shrink: 0;
 
     &:hover:not(:disabled) {
       background-color: $accent-hover;
@@ -486,6 +500,12 @@ async function handleSelect(id: string) {
 
   @media (max-width: 768px) {
     display: inline-flex;
+  }
+}
+
+.desktop-only {
+  @media (max-width: 768px) {
+    display: none;
   }
 }
 

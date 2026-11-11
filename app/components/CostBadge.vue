@@ -51,6 +51,8 @@ const formattedTokens = computed(() => {
   cursor: pointer;
   transition: all 0.2s ease;
   user-select: none;
+  white-space: nowrap;
+  flex-shrink: 0;
 
   &:hover {
     background-color: $bg-surface-elevated;
@@ -77,6 +79,10 @@ const formattedTokens = computed(() => {
   .tokens-amount {
     color: $text-muted;
     font-size: 0.7rem;
+
+    @media (max-width: 600px) {
+      display: none;
+    }
   }
 }
 </style>

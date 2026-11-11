@@ -88,71 +88,105 @@ async function deleteFact(id: string) {
 
 <template>
   <div class="memory-page">
-    <header class="memory-header">
-      <NuxtLink to="/" class="btn-back">← Back to chat</NuxtLink>
-      <h1>What Chi knows about you</h1>
-      <p class="subtitle">
-        Chi automatically learns lasting details from your conversations. You have full control to
-        edit or delete any memory.
-      </p>
+    <header class="memory-nav">
+      <div class="memory-nav__inner">
+        <NuxtLink to="/" class="btn-back" aria-label="Back to chat">
+          <span class="btn-back__icon" aria-hidden="true">←</span>
+          <span>Back to chat</span>
+        </NuxtLink>
+        <NuxtLink to="/" class="btn-close" aria-label="Close" title="Close">
+          <span aria-hidden="true">✕</span>
+        </NuxtLink>
+      </div>
     </header>
 
-    <div v-if="error" class="error-banner">
-      {{ error }}
-    </div>
+    <main class="memory-content">
+      <header class="memory-header">
+        <h1>What Chi knows about you</h1>
+        <p class="subtitle">
+          Chi automatically learns lasting details from your conversations. You have full control to
+          edit or delete any memory.
+        </p>
+      </header>
 
-    <div v-if="loading" class="loading-state">Loading memories...</div>
+      <div v-if="error" class="error-banner">
+        {{ error }}
+      </div>
 
-    <div v-else class="categories-list">
-      <section v-for="cat in categories" :key="cat" class="category-section">
-        <h2 class="category-title">{{ cat }}</h2>
+      <div v-if="loading" class="loading-state">Loading memories...</div>
 
-        <div v-if="groupedFacts[cat]?.length === 0" class="empty-category">
-          No facts recorded yet.
-        </div>
+      <div v-else class="categories-list">
+        <section v-for="cat in categories" :key="cat" class="category-section">
+          <h2 class="category-title">{{ cat }}</h2>
 
-        <ul v-else class="facts-list">
-          <li v-for="f in groupedFacts[cat]" :key="f.id" class="fact-card">
-            <div v-if="editingFactId === f.id" class="fact-edit">
-              <input
-                v-model="editingText"
-                class="fact-input"
-                @keydown.enter="saveEdit(f.id)"
-                @keydown.esc="cancelEdit"
-              />
-              <div class="fact-edit-actions">
-                <button class="btn btn--primary" @click="saveEdit(f.id)">Save</button>
-                <button class="btn btn--subtle" @click="cancelEdit">Cancel</button>
+          <div v-if="groupedFacts[cat]?.length === 0" class="empty-category">
+            No facts recorded yet.
+          </div>
+
+          <ul v-else class="facts-list">
+            <li v-for="f in groupedFacts[cat]" :key="f.id" class="fact-card">
+              <div v-if="editingFactId === f.id" class="fact-edit">
+                <input
+                  v-model="editingText"
+                  class="fact-input"
+                  @keydown.enter="saveEdit(f.id)"
+                  @keydown.esc="cancelEdit"
+                />
+                <div class="fact-edit-actions">
+                  <button class="btn btn--primary" @click="saveEdit(f.id)">Save</button>
+                  <button class="btn btn--subtle" @click="cancelEdit">Cancel</button>
+                </div>
               </div>
-            </div>
 
-            <div v-else class="fact-view">
-              <span class="fact-text">{{ f.fact }}</span>
-              <div class="fact-actions">
-                <button class="btn-action" title="Edit" @click="startEdit(f)">✎</button>
-                <button
-                  class="btn-action btn-action--delete"
-                  title="Delete"
-                  @click="deleteFact(f.id)"
-                >
-                  ✕
-                </button>
+              <div v-else class="fact-view">
+                <span class="fact-text">{{ f.fact }}</span>
+                <div class="fact-actions">
+                  <button class="btn-action" title="Edit" @click="startEdit(f)">✎</button>
+                  <button
+                    class="btn-action btn-action--delete"
+                    title="Delete"
+                    @click="deleteFact(f.id)"
+                  >
+                    ✕
+                  </button>
+                </div>
               </div>
-            </div>
-          </li>
-        </ul>
-      </section>
-    </div>
+            </li>
+          </ul>
+        </section>
+      </div>
+    </main>
   </div>
 </template>
 
 <style scoped lang="scss">
 .memory-page {
-  max-width: 760px;
-  margin: 0 auto;
-  padding: 2rem 1rem 4rem;
   min-height: 100vh;
   background-color: $bg-app;
+}
+
+.memory-nav {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background-color: rgba($bg-app, 0.85);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid $border-subtle;
+
+  &__inner {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 0.75rem 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
+.memory-content {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 1.5rem 1rem 4rem;
 }
 
 .memory-header {
@@ -161,7 +195,6 @@ async function deleteFact(id: string) {
   h1 {
     font-size: 1.5rem;
     font-weight: 700;
-    margin-top: 1rem;
     margin-bottom: 0.5rem;
     color: $text-primary;
   }
@@ -174,13 +207,46 @@ async function deleteFact(id: string) {
 }
 
 .btn-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
   color: $accent;
   text-decoration: none;
   font-size: 0.9rem;
   font-weight: 500;
+  padding: 0.35rem 0.5rem;
+  margin-left: -0.5rem;
+  border-radius: $radius-sm;
+  transition: all 0.2s ease;
 
   &:hover {
-    text-decoration: underline;
+    background-color: rgba($accent, 0.1);
+  }
+
+  &__icon {
+    font-size: 1.1rem;
+    line-height: 1;
+  }
+}
+
+.btn-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: $radius-full;
+  background-color: $bg-surface;
+  border: 1px solid $border-subtle;
+  color: $text-secondary;
+  text-decoration: none;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+
+  &:hover {
+    color: $text-primary;
+    border-color: $border-strong;
+    background-color: $bg-surface-elevated;
   }
 }
 

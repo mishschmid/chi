@@ -72,11 +72,23 @@ onMounted(() => {
 
 <template>
   <div class="settings-page">
-    <header class="settings-header">
-      <NuxtLink to="/" class="btn-back">← Back to chat</NuxtLink>
-      <h1>Settings</h1>
-      <p class="subtitle">Manage your personal AI keys and integrations.</p>
+    <header class="settings-nav">
+      <div class="settings-nav__inner">
+        <NuxtLink to="/" class="btn-back" aria-label="Back to chat">
+          <span class="btn-back__icon" aria-hidden="true">←</span>
+          <span>Back to chat</span>
+        </NuxtLink>
+        <NuxtLink to="/" class="btn-close" aria-label="Close" title="Close">
+          <span aria-hidden="true">✕</span>
+        </NuxtLink>
+      </div>
     </header>
+
+    <main class="settings-content">
+      <header class="settings-header">
+        <h1>Settings</h1>
+        <p class="subtitle">Manage your personal AI keys and integrations.</p>
+      </header>
 
     <div v-if="error" class="error-banner">
       {{ error }}
@@ -133,16 +145,38 @@ onMounted(() => {
         </span>
       </form>
     </div>
+    </main>
   </div>
 </template>
 
 <style scoped lang="scss">
 .settings-page {
-  max-width: 680px;
-  margin: 0 auto;
-  padding: 2rem 1rem 4rem;
   min-height: 100vh;
   background-color: $bg-app;
+}
+
+.settings-nav {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background-color: rgba($bg-app, 0.85);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid $border-subtle;
+
+  &__inner {
+    max-width: 680px;
+    margin: 0 auto;
+    padding: 0.75rem 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
+.settings-content {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 1.5rem 1rem 4rem;
 }
 
 .settings-header {
@@ -151,7 +185,6 @@ onMounted(() => {
   h1 {
     font-size: 1.5rem;
     font-weight: 700;
-    margin-top: 1rem;
     margin-bottom: 0.25rem;
     color: $text-primary;
   }
@@ -163,13 +196,46 @@ onMounted(() => {
 }
 
 .btn-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
   color: $accent;
   text-decoration: none;
   font-size: 0.9rem;
   font-weight: 500;
+  padding: 0.35rem 0.5rem;
+  margin-left: -0.5rem;
+  border-radius: $radius-sm;
+  transition: all 0.2s ease;
 
   &:hover {
-    text-decoration: underline;
+    background-color: rgba($accent, 0.1);
+  }
+
+  &__icon {
+    font-size: 1.1rem;
+    line-height: 1;
+  }
+}
+
+.btn-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: $radius-full;
+  background-color: $bg-surface;
+  border: 1px solid $border-subtle;
+  color: $text-secondary;
+  text-decoration: none;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+
+  &:hover {
+    color: $text-primary;
+    border-color: $border-strong;
+    background-color: $bg-surface-elevated;
   }
 }
 

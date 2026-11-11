@@ -112,6 +112,7 @@ const groups = computed(() => {
 .sidebar {
   position: relative;
   width: 264px;
+  flex-shrink: 0;
   display: flex;
   flex-direction: column;
   padding: 1.5rem 1.25rem 1rem;
