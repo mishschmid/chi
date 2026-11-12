@@ -1,154 +1,136 @@
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount, watch } from 'vue'
 
-const props = defineProps<{
-  /** 0 = idle, 1 = fully energised (e.g. while Chi is thinking or listening) */
-  energy?: number
-}>()
+const props = withDefaults(
+  defineProps<{
+    /** 0 = idle, 1 = fully energized (speaking, thinking, listening) */
+    energy?: number
+    listening?: boolean
+    variant?: 'auto' | 'light' | 'dark' | 'hero'
+  }>(),
+  {
+    energy: 0,
+    listening: false,
+    variant: 'auto',
+  }
+)
 
 const canvas = ref<HTMLCanvasElement | null>(null)
+let rafId: number | null = null
+let level = 0.12
+let voice = 0
+let t = 0
 
-const VERTEX = `
-attribute vec2 a_pos;
-void main() { gl_Position = vec4(a_pos, 0.0, 1.0); }
-`
+function getInk(): [number, number, number, number] {
+  if (props.variant === 'hero') {
+    return [17, 17, 17, 0.13]
+  }
+  if (props.variant === 'dark') {
+    return [243, 242, 239, 0.05]
+  }
+  if (props.variant === 'light') {
+    return [17, 17, 17, 0.06]
+  }
 
-// Slowly drifting, domain-warped noise field: warm smoke with faint ember contour lines.
-const FRAGMENT = `
-precision mediump float;
-uniform vec2 u_res;
-uniform float u_time;
-uniform float u_energy;
-
-float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
-
-float noise(vec2 p) {
-  vec2 i = floor(p), f = fract(p);
-  vec2 u = f * f * (3.0 - 2.0 * f);
-  return mix(mix(hash(i), hash(i + vec2(1.0, 0.0)), u.x),
-             mix(hash(i + vec2(0.0, 1.0)), hash(i + vec2(1.0, 1.0)), u.x), u.y);
+  // Auto detect from document data-theme
+  if (typeof document !== 'undefined') {
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark'
+    return isDark ? [243, 242, 239, 0.05] : [17, 17, 17, 0.06]
+  }
+  return [17, 17, 17, 0.06]
 }
 
-float fbm(vec2 p) {
-  float v = 0.0, a = 0.5;
-  mat2 r = mat2(0.8, -0.6, 0.6, 0.8);
-  for (int i = 0; i < 5; i++) { v += a * noise(p); p = r * p * 2.0; a *= 0.5; }
-  return v;
+function draw(c: HTMLCanvasElement, ts: number) {
+  const ink = getInk()
+  const dpr = Math.min(window.devicePixelRatio || 1, 1.5)
+  const w = c.clientWidth
+  const h = c.clientHeight
+  if (!w || !h) return
+
+  const targetW = Math.round(w * dpr)
+  const targetH = Math.round(h * dpr)
+  if (c.width !== targetW || c.height !== targetH) {
+    c.width = targetW
+    c.height = targetH
+  }
+
+  const ctx = c.getContext('2d')
+  if (!ctx) return
+
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+  ctx.clearRect(0, 0, w, h)
+
+  const isActive = props.listening || (props.energy ?? 0) > 0.2
+  const targetLevel = props.listening ? 1 : props.energy ? 0.12 + props.energy * 0.88 : 0.12
+  level += (targetLevel - level) * 0.035
+
+  const targetVoice = isActive
+    ? 0.35 + 0.65 * Math.abs(Math.sin(ts * 0.0029) * Math.sin(ts * 0.0013 + 1.3))
+    : 0
+  voice += (targetVoice - voice) * 0.12
+  t += 0.0035 + 0.014 * level
+
+  const n = 22
+  const gap = h / n
+  ctx.lineWidth = 1
+
+  for (let i = 0; i < n; i++) {
+    const y0 = gap * (i + 0.5)
+    const ny = (i + 0.5) / n
+    const rowEnv = Math.exp(-Math.pow((ny - 0.55) * 2.4, 2))
+    const a = Math.min(0.5, ink[3] * (1 + level * 1.4 + voice * 1.2 * rowEnv))
+    ctx.strokeStyle = `rgba(${ink[0]},${ink[1]},${ink[2]},${a})`
+    ctx.beginPath()
+
+    for (let x = 0; x <= w + 10; x += 10) {
+      const nx = x / w
+      const env = Math.exp(-Math.pow((nx - 0.5) * 2.2, 2))
+      const amp = gap * (0.7 + (level * 1.6 + voice * 3.2) * env * rowEnv)
+      const y =
+        y0 +
+        amp *
+          (Math.sin(nx * 5.5 + t * 2.4 + i * 0.45) * 0.6 +
+            Math.sin(nx * 13 - t * 3.1 + i * 0.9) * (0.15 + 0.35 * level))
+
+      if (x === 0) {
+        ctx.moveTo(x, y)
+      } else {
+        ctx.lineTo(x, y)
+      }
+    }
+    ctx.stroke()
+  }
 }
 
-void main() {
-  vec2 uv = (gl_FragCoord.xy - 0.5 * u_res) / min(u_res.x, u_res.y);
-  float t = u_time * (0.03 + 0.05 * u_energy);
-
-  vec2 q = vec2(fbm(uv * 1.4 + t), fbm(uv * 1.4 - t + 5.2));
-  vec2 r = vec2(fbm(uv * 1.8 + 3.0 * q + vec2(1.7, 9.2) + t * 1.3),
-                fbm(uv * 1.8 + 3.0 * q + vec2(8.3, 2.8) - t * 1.1));
-  float f = fbm(uv * 1.6 + 3.5 * r);
-
-  // Thin luminous contour lines through the field
-  float lines = smoothstep(0.03, 0.0, abs(fract(f * 6.0) - 0.5) - 0.46);
-
-  vec3 bg = vec3(0.071, 0.063, 0.055);
-  vec3 smoke = vec3(0.93, 0.90, 0.85);
-  vec3 ember = vec3(1.0, 0.37, 0.18);
-  vec3 tint = mix(smoke, ember, clamp(length(q) * 0.9 - 0.2 + 0.4 * u_energy, 0.0, 1.0));
-
-  float glow = pow(f, 3.0) * (0.08 + 0.14 * u_energy);
-  vec3 col = bg + tint * glow + ember * lines * (0.02 + 0.05 * u_energy);
-
-  // Vignette keeps the edges calm and the text readable
-  col *= 1.0 - 0.45 * dot(uv * 0.8, uv * 0.8);
-  gl_FragColor = vec4(col, 1.0);
-}
-`
-
-let gl: WebGLRenderingContext | null = null
-let frame = 0
-let energy = 0
-let resizeObserver: ResizeObserver | null = null
-
-function compile(type: number, source: string) {
-  const shader = gl!.createShader(type)!
-  gl!.shaderSource(shader, source)
-  gl!.compileShader(shader)
-  return shader
+function loop(ts: number) {
+  if (canvas.value) {
+    draw(canvas.value, ts)
+  }
+  rafId = requestAnimationFrame(loop)
 }
 
 onMounted(() => {
-  const el = canvas.value
-  if (!el) return
-  gl = el.getContext('webgl', { antialias: false, alpha: false })
-  if (!gl) return
-
-  const program = gl.createProgram()!
-  gl.attachShader(program, compile(gl.VERTEX_SHADER, VERTEX))
-  gl.attachShader(program, compile(gl.FRAGMENT_SHADER, FRAGMENT))
-  gl.linkProgram(program)
-  if (!gl.getProgramParameter(program, gl.LINK_STATUS)) return
-  gl.useProgram(program)
-
-  gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer())
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW)
-  const pos = gl.getAttribLocation(program, 'a_pos')
-  gl.enableVertexAttribArray(pos)
-  gl.vertexAttribPointer(pos, 2, gl.FLOAT, false, 0, 0)
-
-  const uRes = gl.getUniformLocation(program, 'u_res')
-  const uTime = gl.getUniformLocation(program, 'u_time')
-  const uEnergy = gl.getUniformLocation(program, 'u_energy')
-
-  // Render at reduced resolution: the field is soft, and this keeps it cheap.
-  const scale = 0.5
-  const resize = () => {
-    el.width = Math.max(1, Math.floor(el.clientWidth * scale))
-    el.height = Math.max(1, Math.floor(el.clientHeight * scale))
-    gl!.viewport(0, 0, el.width, el.height)
-  }
-  resize()
-  resizeObserver = new ResizeObserver(resize)
-  resizeObserver.observe(el)
-
-  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-  const start = performance.now() - Math.random() * 100000
-
-  const render = (now: number) => {
-    energy += ((props.energy ?? 0) - energy) * 0.03
-    gl!.uniform2f(uRes, el.width, el.height)
-    gl!.uniform1f(uTime, (now - start) / 1000)
-    gl!.uniform1f(uEnergy, energy)
-    gl!.drawArrays(gl!.TRIANGLES, 0, 3)
-    if (!reducedMotion) frame = requestAnimationFrame(render)
-  }
-  frame = requestAnimationFrame(render)
-
-  if (reducedMotion) {
-    watch(
-      () => props.energy,
-      () => requestAnimationFrame(render)
-    )
-  }
+  rafId = requestAnimationFrame(loop)
 })
 
 onBeforeUnmount(() => {
-  cancelAnimationFrame(frame)
-  resizeObserver?.disconnect()
-  gl?.getExtension('WEBGL_lose_context')?.loseContext()
-  gl = null
+  if (rafId !== null) {
+    cancelAnimationFrame(rafId)
+  }
 })
 </script>
 
 <template>
-  <canvas ref="canvas" class="ambient-bg" aria-hidden="true" />
+  <canvas ref="canvas" class="ambient-canvas" aria-hidden="true" />
 </template>
 
-<style scoped lang="scss">
-.ambient-bg {
+<style scoped>
+.ambient-canvas {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
-  z-index: 0;
   pointer-events: none;
-  background-color: $bg-app;
+  z-index: 0;
 }
 </style>

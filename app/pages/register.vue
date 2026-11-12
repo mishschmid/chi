@@ -27,7 +27,7 @@ async function handleSubmit() {
   <div class="auth-page">
     <div class="auth-card">
       <div class="auth-card__header">
-        <h1 class="logo">Chi</h1>
+        <h1 class="logo">chi<span class="logo__dot">.</span></h1>
         <p class="tagline">Create your companion account</p>
       </div>
 
@@ -92,43 +92,49 @@ async function handleSubmit() {
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: $bg-app;
+  background-color: var(--bg-page);
   padding: 1.5rem;
 }
 
 .auth-card {
   width: 100%;
-  max-width: 400px;
-  background-color: $bg-surface;
-  border: 1px solid $border-subtle;
-  border-radius: $radius-lg;
+  max-width: 420px;
+  background-color: var(--bg-surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-panel);
   padding: 2.5rem 2rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
 
   &__header {
     text-align: center;
     margin-bottom: 2rem;
 
     .logo {
-      font-size: 2.25rem;
-      font-weight: 700;
-      color: $accent;
-      margin-bottom: 0.25rem;
+      font-size: 3rem;
+      font-weight: 500;
+      letter-spacing: -0.065em;
+      line-height: 0.9;
+      color: var(--ink);
+      margin-bottom: 0.5rem;
+
+      &__dot {
+        color: var(--orange);
+      }
     }
 
     .tagline {
-      color: $text-secondary;
+      color: var(--ink-2);
       font-size: 0.95rem;
     }
   }
 }
 
 .error-banner {
-  background-color: rgba(239, 68, 68, 0.15);
-  color: #fca5a5;
-  border: 1px solid rgba(239, 68, 68, 0.3);
-  padding: 0.6rem 0.8rem;
+  background-color: rgba(201, 61, 24, 0.1);
+  color: var(--orange-ink);
+  padding: 0.75rem 1rem;
   font-size: 0.85rem;
-  border-radius: $radius-sm;
+  border-radius: var(--radius-card);
   margin-bottom: 1.5rem;
 }
 
@@ -141,42 +147,48 @@ async function handleSubmit() {
 .form-group {
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
+  gap: 0.4rem;
 
   label {
     font-size: 0.85rem;
-    color: $text-secondary;
+    color: var(--ink);
     font-weight: 500;
   }
 
   input {
-    background-color: $bg-input;
-    border: 1px solid $border-subtle;
-    border-radius: $radius-sm;
-    color: $text-primary;
-    padding: 0.65rem 0.85rem;
+    background-color: var(--bg-sunken);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-pill);
+    padding: 0.75rem 1.1rem;
+    color: var(--ink);
     font-size: 0.95rem;
     outline: none;
+    transition: border-color 0.15s ease;
 
     &:focus {
-      border-color: $accent;
+      border-color: var(--ink);
+    }
+
+    &::placeholder {
+      color: var(--ink-3);
     }
   }
 }
 
 .btn--submit {
   margin-top: 0.5rem;
-  background-color: $accent;
-  color: #000;
+  background-color: var(--btn-primary);
+  color: var(--btn-primary-ink);
   border: none;
-  border-radius: $radius-sm;
-  padding: 0.75rem;
-  font-weight: 600;
+  border-radius: var(--radius-pill);
+  padding: 0.85rem 1.5rem;
   font-size: 0.95rem;
+  font-weight: 500;
   cursor: pointer;
+  transition: opacity 0.15s ease;
 
-  &:hover:not(:disabled) {
-    background-color: $accent-hover;
+  &:hover {
+    opacity: 0.9;
   }
 
   &:disabled {
@@ -186,15 +198,19 @@ async function handleSubmit() {
 }
 
 .auth-footer {
-  margin-top: 1.5rem;
+  margin-top: 1.75rem;
   text-align: center;
   font-size: 0.85rem;
-  color: $text-secondary;
+  color: var(--ink-2);
 
   .link {
-    color: $accent;
+    color: var(--orange-ink);
     text-decoration: none;
-    margin-left: 0.25rem;
+    font-weight: 500;
+
+    [data-theme='dark'] & {
+      color: var(--orange-ink-dark);
+    }
 
     &:hover {
       text-decoration: underline;

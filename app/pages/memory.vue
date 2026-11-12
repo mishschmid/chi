@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
+import { useAuth } from '~/composables/useAuth'
+import { useChat } from '~/composables/useChat'
+import AppSidebar from '~/components/AppSidebar.vue'
 
 interface FactItem {
   id: string
@@ -8,11 +11,16 @@ interface FactItem {
   updatedAt: string
 }
 
+const { user, signOut } = useAuth()
+const { conversations, loadConversations } = useChat()
+
 const facts = ref<FactItem[]>([])
 const loading = ref(true)
 const error = ref<string | null>(null)
 const editingFactId = ref<string | null>(null)
 const editingText = ref('')
+const activeCategory = ref<string>('all')
+const isSidebarOpen = ref(false)
 
 async function loadFacts() {
   loading.value = true
@@ -26,26 +34,41 @@ async function loadFacts() {
   }
 }
 
-onMounted(() => {
-  loadFacts()
+onMounted(async () => {
+  await Promise.all([loadFacts(), loadConversations()])
 })
 
-const categories: Array<FactItem['category']> = [
-  'identity',
-  'goal',
-  'preference',
-  'person',
-  'health',
-  'other',
+const categories: Array<{ id: string; label: string }> = [
+  { id: 'all', label: 'All' },
+  { id: 'health', label: 'Health & Runs' },
+  { id: 'goal', label: 'Goals' },
+  { id: 'person', label: 'People' },
+  { id: 'preference', label: 'Preferences' },
+  { id: 'identity', label: 'Identity' },
+  { id: 'other', label: 'Other' },
 ]
 
-const groupedFacts = computed(() => {
-  const map: Record<string, FactItem[]> = {}
-  for (const cat of categories) {
-    map[cat] = facts.value.filter((f) => f.category === cat)
-  }
-  return map
+const filteredFacts = computed(() => {
+  if (activeCategory.value === 'all') return facts.value
+  return facts.value.filter((f) => f.category === activeCategory.value)
 })
+
+function getCardVariant(idx: number): 'plain' | 'orange' | 'dark' {
+  if (idx % 6 === 0 && idx !== 0) return 'orange'
+  if (idx % 4 === 3) return 'dark'
+  return 'plain'
+}
+
+function formatDate(dateStr: string) {
+  try {
+    return new Date(dateStr).toLocaleDateString('en-GB', {
+      day: 'numeric',
+      month: 'short',
+    })
+  } catch {
+    return 'Recent'
+  }
+}
 
 function startEdit(f: FactItem) {
   editingFactId.value = f.id
@@ -80,6 +103,9 @@ async function deleteFact(id: string) {
       method: 'DELETE',
     })
     facts.value = facts.value.filter((f) => f.id !== id)
+    if (editingFactId.value === id) {
+      cancelEdit()
+    }
   } catch (e: any) {
     error.value = e?.statusMessage || 'Failed to delete fact'
   }
@@ -87,307 +113,524 @@ async function deleteFact(id: string) {
 </script>
 
 <template>
-  <div class="memory-page">
-    <header class="memory-nav">
-      <div class="memory-nav__inner">
-        <NuxtLink to="/" class="btn-back" aria-label="Back to chat">
-          <span class="btn-back__icon" aria-hidden="true">←</span>
-          <span>Back to chat</span>
-        </NuxtLink>
-        <NuxtLink to="/" class="btn-close" aria-label="Close" title="Close">
-          <span aria-hidden="true">✕</span>
-        </NuxtLink>
-      </div>
-    </header>
+  <div class="chi-app-shell">
+    <AppSidebar
+      :conversations="conversations"
+      :active-id="null"
+      :open="isSidebarOpen"
+      :user="user"
+      active-section="memory"
+      @select="(id) => navigateTo(`/?id=${id}`)"
+      @create="() => navigateTo('/')"
+      @sign-out="signOut"
+      @close="isSidebarOpen = false"
+    />
 
-    <main class="memory-content">
-      <header class="memory-header">
-        <h1>What Chi knows about you</h1>
-        <p class="subtitle">
-          Chi automatically learns lasting details from your conversations. You have full control to
-          edit or delete any memory.
-        </p>
+    <div v-if="isSidebarOpen" class="mobile-backdrop" @click="isSidebarOpen = false" />
+
+    <div class="main-panel-wrap">
+      <!-- Mobile Bar -->
+      <header class="mobile-nav-bar">
+        <div class="mobile-nav-bar__brand">chi<span class="brand-dot">.</span></div>
+        <div class="mobile-nav-bar__actions">
+          <NuxtLink to="/" class="circle-btn" title="Back to chat">
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M19 12H5M12 19l-7-7 7-7" />
+            </svg>
+          </NuxtLink>
+          <button
+            class="circle-btn circle-btn--dark"
+            title="Open menu"
+            @click="isSidebarOpen = true"
+          >
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <line x1="3" y1="12" x2="21" y2="12"></line>
+              <line x1="3" y1="6" x2="21" y2="6"></line>
+              <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
+          </button>
+        </div>
       </header>
 
-      <div v-if="error" class="error-banner">
-        {{ error }}
-      </div>
-
-      <div v-if="loading" class="loading-state">Loading memories...</div>
-
-      <div v-else class="categories-list">
-        <section v-for="cat in categories" :key="cat" class="category-section">
-          <h2 class="category-title">{{ cat }}</h2>
-
-          <div v-if="groupedFacts[cat]?.length === 0" class="empty-category">
-            No facts recorded yet.
+      <main class="main-panel">
+        <!-- Header -->
+        <div class="memory-header">
+          <div class="memory-header__titles">
+            <span class="memory-header__meta">{{ facts.length }} things Chi remembers</span>
+            <h1 class="memory-header__title">Memory</h1>
           </div>
+          <button class="circle-btn" title="Refresh memories" @click="loadFacts">
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67" />
+            </svg>
+          </button>
+        </div>
 
-          <ul v-else class="facts-list">
-            <li v-for="f in groupedFacts[cat]" :key="f.id" class="fact-card">
-              <div v-if="editingFactId === f.id" class="fact-edit">
-                <input
-                  v-model="editingText"
-                  class="fact-input"
-                  @keydown.enter="saveEdit(f.id)"
-                  @keydown.esc="cancelEdit"
-                />
-                <div class="fact-edit-actions">
-                  <button class="btn btn--primary" @click="saveEdit(f.id)">Save</button>
-                  <button class="btn btn--subtle" @click="cancelEdit">Cancel</button>
-                </div>
+        <!-- Filter Pills -->
+        <div class="filter-pills">
+          <button
+            v-for="cat in categories"
+            :key="cat.id"
+            :class="['filter-pill', { 'filter-pill--active': activeCategory === cat.id }]"
+            @click="activeCategory = cat.id"
+          >
+            <span>{{ cat.label }}</span>
+            <span v-if="cat.id === 'all'" class="filter-pill__count">{{ facts.length }}</span>
+          </button>
+        </div>
+
+        <!-- Error state -->
+        <div v-if="error" class="error-banner">
+          {{ error }}
+        </div>
+
+        <!-- Loading state -->
+        <div v-if="loading" class="state-message">
+          <span>Loading memory cards…</span>
+        </div>
+
+        <!-- Empty state -->
+        <div v-else-if="filteredFacts.length === 0" class="state-message">
+          <span>No saved memories in this category yet.</span>
+        </div>
+
+        <!-- Cards Grid (D4) -->
+        <div v-else class="memory-grid">
+          <div
+            v-for="(f, idx) in filteredFacts"
+            :key="f.id"
+            :class="[
+              'memory-card',
+              `memory-card--${getCardVariant(idx)}`,
+              { 'memory-card--editing': editingFactId === f.id },
+            ]"
+            @click="editingFactId !== f.id && startEdit(f)"
+          >
+            <!-- Card Header -->
+            <div class="memory-card__header">
+              <div class="memory-card__info">
+                <span class="memory-card__cat">{{ f.category }}</span>
+                <span class="memory-card__date">{{ formatDate(f.updatedAt) }}</span>
               </div>
-
-              <div v-else class="fact-view">
-                <span class="fact-text">{{ f.fact }}</span>
-                <div class="fact-actions">
-                  <button class="btn-action" title="Edit" @click="startEdit(f)">✎</button>
-                  <button
-                    class="btn-action btn-action--delete"
-                    title="Delete"
-                    @click="deleteFact(f.id)"
+              <div class="memory-card__actions">
+                <button
+                  v-if="editingFactId === f.id"
+                  class="card-action-btn card-action-btn--delete"
+                  title="Delete memory"
+                  @click.stop="deleteFact(f.id)"
+                >
+                  ✕
+                </button>
+                <div v-else class="card-arrow" title="Edit">
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
                   >
-                    ✕
-                  </button>
+                    <line x1="7" y1="17" x2="17" y2="7"></line>
+                    <polyline points="7 7 17 7 17 17"></polyline>
+                  </svg>
                 </div>
               </div>
-            </li>
-          </ul>
-        </section>
-      </div>
-    </main>
+            </div>
+
+            <!-- Card Body / Edit Form -->
+            <div v-if="editingFactId === f.id" class="memory-card__edit-wrap" @click.stop>
+              <textarea v-model="editingText" class="memory-card__textarea" rows="3" autofocus />
+              <div class="memory-card__edit-actions">
+                <button class="pill-btn pill-btn--save" @click="saveEdit(f.id)">Save</button>
+                <button class="pill-btn pill-btn--cancel" @click="cancelEdit">Cancel</button>
+              </div>
+            </div>
+            <div v-else class="memory-card__body">
+              {{ f.fact }}
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
   </div>
 </template>
 
 <style scoped lang="scss">
-.memory-page {
-  min-height: 100vh;
-  background-color: $bg-app;
-}
+.chi-app-shell {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+  padding: 12px;
+  gap: 12px;
+  box-sizing: border-box;
+  background-color: var(--bg-page);
+  color: var(--ink);
+  overflow: hidden;
 
-.memory-nav {
-  position: sticky;
-  top: 0;
-  z-index: 20;
-  background-color: rgba($bg-app, 0.85);
-  backdrop-filter: blur(12px);
-  border-bottom: 1px solid $border-subtle;
-
-  &__inner {
-    max-width: 760px;
-    margin: 0 auto;
-    padding: 0.75rem 1rem;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
+  @media (max-width: 900px) {
+    padding: 0;
+    gap: 0;
+    flex-direction: column;
   }
 }
 
-.memory-content {
-  max-width: 760px;
-  margin: 0 auto;
-  padding: 1.5rem 1rem 4rem;
+.mobile-backdrop {
+  display: none;
+
+  @media (max-width: 900px) {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 90;
+  }
+}
+
+.main-panel-wrap {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.mobile-nav-bar {
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: var(--bg-page);
+  flex: none;
+
+  @media (max-width: 900px) {
+    display: flex;
+  }
+
+  &__brand {
+    font-size: 36px;
+    font-weight: 500;
+    letter-spacing: -0.065em;
+    line-height: 0.8;
+  }
+
+  &__actions {
+    display: flex;
+    gap: 8px;
+  }
+}
+
+.brand-dot {
+  color: var(--orange);
+}
+
+.circle-btn {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--bg-sunken);
+  color: var(--ink);
+  border: 0;
+  display: grid;
+  place-items: center;
+  flex: none;
+  cursor: pointer;
+  text-decoration: none;
+  transition: opacity 0.15s ease;
+
+  &:hover {
+    opacity: 0.85;
+  }
+
+  &--dark {
+    background: var(--btn-primary);
+    color: var(--btn-primary-ink);
+  }
+}
+
+.main-panel {
+  flex: 1;
+  min-width: 0;
+  background: var(--bg-surface);
+  border-radius: var(--radius-panel);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  padding: 28px;
+  box-sizing: border-box;
+  gap: 22px;
+
+  @media (max-width: 900px) {
+    border-radius: 0;
+    padding: 20px 16px;
+  }
 }
 
 .memory-header {
-  margin-bottom: 2rem;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
 
-  h1 {
-    font-size: 1.5rem;
-    font-weight: 700;
-    margin-bottom: 0.5rem;
-    color: $text-primary;
+  &__titles {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
   }
 
-  .subtitle {
-    color: $text-secondary;
-    font-size: 0.95rem;
-    line-height: 1.5;
+  &__meta {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--ink-2);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  &__title {
+    font-size: 72px;
+    font-weight: 400;
+    letter-spacing: -0.05em;
+    line-height: 0.9;
+    margin: 0;
+
+    @media (max-width: 600px) {
+      font-size: 44px;
+    }
   }
 }
 
-.btn-back {
+.filter-pills {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.filter-pill {
+  height: 42px;
+  border-radius: var(--radius-pill);
+  background: var(--bg-sunken);
+  color: var(--ink);
+  border: 0;
   display: inline-flex;
   align-items: center;
-  gap: 0.4rem;
-  color: $accent;
-  text-decoration: none;
-  font-size: 0.9rem;
+  gap: 8px;
+  padding: 0 18px;
+  font-size: 14px;
   font-weight: 500;
-  padding: 0.35rem 0.5rem;
-  margin-left: -0.5rem;
-  border-radius: $radius-sm;
-  transition: all 0.2s ease;
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
 
   &:hover {
-    background-color: rgba($accent, 0.1);
+    opacity: 0.9;
   }
 
-  &__icon {
-    font-size: 1.1rem;
-    line-height: 1;
+  &--active {
+    background: var(--btn-primary);
+    color: var(--btn-primary-ink);
+    padding: 0 6px 0 18px;
+
+    .filter-pill__count {
+      background: var(--orange);
+      color: var(--on-orange);
+    }
   }
-}
 
-.btn-close {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 34px;
-  height: 34px;
-  border-radius: $radius-full;
-  background-color: $bg-surface;
-  border: 1px solid $border-subtle;
-  color: $text-secondary;
-  text-decoration: none;
-  font-size: 0.9rem;
-  transition: all 0.2s ease;
-
-  &:hover {
-    color: $text-primary;
-    border-color: $border-strong;
-    background-color: $bg-surface-elevated;
+  &__count {
+    min-width: 26px;
+    height: 26px;
+    border-radius: var(--radius-pill);
+    background: var(--bg-surface);
+    color: var(--ink);
+    display: grid;
+    place-items: center;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 0 6px;
   }
 }
 
 .error-banner {
-  background-color: rgba(239, 68, 68, 0.15);
-  color: #fca5a5;
-  border: 1px solid rgba(239, 68, 68, 0.3);
-  padding: 0.5rem 1rem;
-  font-size: 0.85rem;
-  margin-bottom: 1.5rem;
-  border-radius: $radius-sm;
+  background: rgba(201, 61, 24, 0.1);
+  color: var(--orange-ink);
+  border-radius: var(--radius-card);
+  padding: 14px 18px;
+  font-size: 14px;
 }
 
-.loading-state {
+.state-message {
+  padding: 60px 0;
   text-align: center;
-  color: $text-muted;
-  padding: 3rem 0;
+  color: var(--ink-2);
+  font-size: 16px;
 }
 
-.category-section {
-  margin-bottom: 2rem;
+.memory-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 12px;
 }
 
-.category-title {
-  font-size: 0.9rem;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: $accent;
-  font-weight: 600;
-  margin-bottom: 0.75rem;
-  border-bottom: 1px solid $border-subtle;
-  padding-bottom: 0.25rem;
-}
-
-.empty-category {
-  color: $text-muted;
-  font-size: 0.85rem;
-  font-style: italic;
-  padding: 0.25rem 0;
-}
-
-.facts-list {
-  list-style: none;
+.memory-card {
+  border-radius: var(--radius-card);
+  padding: 20px 20px 22px;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
-}
-
-.fact-card {
-  background-color: $bg-surface;
-  border: 1px solid $border-subtle;
-  border-radius: $radius-md;
-  padding: 0.75rem 1rem;
-
-  &:hover {
-    border-color: $border-strong;
-  }
-}
-
-.fact-view {
-  display: flex;
   justify-content: space-between;
-  align-items: center;
-  gap: 1rem;
-}
-
-.fact-text {
-  font-size: 0.95rem;
-  color: $text-primary;
-  line-height: 1.4;
-}
-
-.fact-actions {
-  display: flex;
-  gap: 0.5rem;
-}
-
-.btn-action {
-  background: none;
-  border: none;
-  color: $text-muted;
+  gap: 16px;
+  min-height: 180px;
   cursor: pointer;
-  font-size: 0.9rem;
-  padding: 0.2rem 0.4rem;
-  border-radius: $radius-sm;
+  transition: transform 0.15s ease;
 
   &:hover {
-    color: $text-primary;
-    background-color: $bg-surface-elevated;
+    transform: translateY(-2px);
   }
 
-  &--delete:hover {
-    color: #f87171;
-  }
-}
-
-.fact-edit {
-  display: flex;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-}
-
-.fact-input {
-  flex: 1;
-  min-width: 200px;
-  background-color: $bg-input;
-  border: 1px solid $accent;
-  border-radius: $radius-sm;
-  color: $text-primary;
-  padding: 0.4rem 0.6rem;
-  font-family: inherit;
-  font-size: 0.95rem;
-  outline: none;
-}
-
-.fact-edit-actions {
-  display: flex;
-  gap: 0.5rem;
-}
-
-.btn {
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-family: inherit;
-  font-size: 0.85rem;
-  border-radius: $radius-sm;
-  padding: 0.35rem 0.65rem;
-
-  &--primary {
-    background-color: $accent;
-    color: #000;
-    font-weight: 600;
+  &--plain {
+    background: var(--bg-sunken);
+    color: var(--ink);
   }
 
-  &--subtle {
-    color: $text-secondary;
+  &--orange {
+    background: var(--orange);
+    color: var(--on-orange);
 
-    &:hover {
-      color: $text-primary;
+    .memory-card__date {
+      color: var(--on-orange-muted);
     }
+  }
+
+  &--dark {
+    background: #111111;
+    color: #f3f2ef;
+
+    .memory-card__date {
+      color: #a9a8a4;
+    }
+
+    .card-arrow {
+      color: #f3f2ef;
+    }
+  }
+
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  &__info {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.25;
+  }
+
+  &__cat {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: capitalize;
+  }
+
+  &__date {
+    font-size: 12px;
+    color: var(--ink-2);
+  }
+
+  &__body {
+    font-size: 26px;
+    font-weight: 400;
+    letter-spacing: -0.035em;
+    line-height: 1.1;
+    text-wrap: pretty;
+  }
+
+  &__edit-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  &__textarea {
+    width: 100%;
+    border-radius: 12px;
+    border: 1px solid var(--line);
+    padding: 10px;
+    font-size: 15px;
+    background: var(--bg-surface);
+    color: var(--ink);
+    outline: none;
+    resize: vertical;
+  }
+
+  &__edit-actions {
+    display: flex;
+    gap: 6px;
+  }
+}
+
+.card-action-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 0;
+  display: grid;
+  place-items: center;
+  font-size: 12px;
+  cursor: pointer;
+
+  &--delete {
+    background: rgba(201, 61, 24, 0.15);
+    color: var(--orange-ink);
+  }
+}
+
+.pill-btn {
+  height: 32px;
+  border-radius: var(--radius-pill);
+  border: 0;
+  padding: 0 14px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+
+  &--save {
+    background: var(--btn-primary);
+    color: var(--btn-primary-ink);
+  }
+
+  &--cancel {
+    background: var(--bg-sunken);
+    color: var(--ink);
   }
 }
 </style>

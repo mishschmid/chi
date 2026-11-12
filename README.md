@@ -26,7 +26,7 @@ Provide your `OPENAI_API_KEY` (or `ANTHROPIC_API_KEY`) in `.env`.
 docker compose up -d
 ```
 
-Runs Postgres 17 with `pgvector` on port `5433` (preventing conflicts with standard port `5432`).
+Runs Postgres 17 with `pgvector` on port `5434` (preventing conflicts with standard port `5432` and `5433`).
 
 ### 3. Run Migrations & Seed
 

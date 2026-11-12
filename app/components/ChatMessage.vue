@@ -27,51 +27,45 @@ const formattedCost = computed(() => {
 </script>
 
 <template>
-  <div :class="['message', `message--${role}`, { 'message--speaking': speaking }]">
-    <div class="message__bubble">
-      <!-- Semi-transparent wave background when Chi is speaking -->
-      <div v-if="speaking" class="message__wave-bg" aria-hidden="true">
-        <div class="wave-ambient" />
-        <svg class="wave-svg" viewBox="0 0 1000 120" preserveAspectRatio="none">
-          <path
-            class="wave-layer wave-layer--back"
-            d="M0,60 C250,110 500,10 750,60 C870,85 940,40 1000,60 L1000,120 L0,120 Z"
-          />
-          <path
-            class="wave-layer wave-layer--front"
-            d="M0,70 C180,20 420,100 680,60 C820,40 920,80 1000,70 L1000,120 L0,120 Z"
-          />
-        </svg>
-      </div>
+  <div :class="['message-row', `message-row--${role}`]">
+    <!-- User Bubble -->
+    <div v-if="role === 'user'" class="bubble bubble--user">
+      <div class="bubble__header-user">You</div>
+      <div class="bubble__content">{{ content }}</div>
+    </div>
 
-      <div class="message__header">
-        <div class="message__role-wrap">
-          <span class="message__role">{{ role === 'user' ? 'You' : 'Chi' }}</span>
-          <button
-            v-if="speaking"
-            class="message__speaking-badge"
-            title="Click to stop Chi speaking"
-            @click.stop="$emit('stop-speaking')"
-          >
-            <SoundWave size="sm" />
-            <span>Speaking</span>
-            <span class="stop-hint">· stop</span>
-          </button>
+    <!-- Assistant Bubble -->
+    <div v-else class="bubble bubble--assistant" :class="{ 'bubble--speaking': speaking }">
+      <div class="bubble__header-assistant">
+        <div class="bubble__avatar">c</div>
+        <div class="bubble__author">
+          <span class="bubble__name">Chi</span>
+          <span class="bubble__role-label">Assistant</span>
         </div>
 
-        <span
-          v-if="role === 'assistant' && (totalTokens || formattedCost)"
-          class="message__meta"
+        <button
+          v-if="speaking"
+          class="bubble__speaking-badge"
+          title="Click to stop speaking"
+          @click.stop="$emit('stop-speaking')"
+        >
+          <SoundWave size="sm" />
+          <span>Speaking</span>
+        </button>
+
+        <div
+          v-if="totalTokens || formattedCost"
+          class="bubble__meta"
           :title="`Model: ${model || 'default'}`"
         >
           <span v-if="totalTokens">{{ totalTokens }} tokens</span>
-          <span v-if="totalTokens && formattedCost" class="meta-dot">·</span>
-          <span v-if="formattedCost" class="cost-tag">{{ formattedCost }}</span>
-        </span>
+          <span v-if="totalTokens && formattedCost">·</span>
+          <span v-if="formattedCost" class="bubble__cost">{{ formattedCost }}</span>
+        </div>
       </div>
 
       <ThinkingIndicator v-if="thinking && !content" />
-      <div v-else :class="['message__content', { 'message__content--streaming': thinking }]">
+      <div v-else :class="['bubble__content', { 'bubble__content--streaming': thinking }]">
         {{ content }}
       </div>
     </div>
@@ -79,233 +73,161 @@ const formattedCost = computed(() => {
 </template>
 
 <style scoped lang="scss">
-.message {
+.message-row {
   display: flex;
-  margin-bottom: 1rem;
   width: 100%;
+  margin-bottom: 14px;
 
   &--user {
     justify-content: flex-end;
-
-    .message__bubble {
-      background-color: $accent-dim;
-      color: $text-primary;
-      border-top-right-radius: $radius-sm;
-    }
-
-    .message__role {
-      color: $accent;
-    }
   }
 
   &--assistant {
     justify-content: flex-start;
-
-    .message__bubble {
-      background-color: rgba($bg-surface, 0.75);
-      backdrop-filter: blur(8px);
-      color: $text-primary;
-      border-top-left-radius: $radius-sm;
-      border: 1px solid $border-subtle;
-    }
-
-    .message__role {
-      color: $text-secondary;
-    }
   }
+}
 
-  &--speaking {
-    .message__bubble {
-      border-color: rgba($accent, 0.45) !important;
-      box-shadow:
-        0 4px 24px rgba($accent, 0.15),
-        inset 0 0 24px rgba($accent, 0.05);
-      transition: all 0.3s ease;
-    }
-  }
+.bubble {
+  position: relative;
+  box-sizing: border-box;
 
-  &__bubble {
-    position: relative;
-    overflow: hidden;
-    max-width: 85%;
-    padding: 0.75rem 1rem;
-    border-radius: $radius-lg;
-    word-break: break-word;
-    overflow-wrap: anywhere;
-  }
-
-  &__wave-bg {
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    border-radius: inherit;
-    overflow: hidden;
-    z-index: 0;
-  }
-
-  .wave-ambient {
-    position: absolute;
-    inset: 0;
-    background:
-      radial-gradient(ellipse at 20% 0%, rgba($accent, 0.18) 0%, transparent 70%),
-      radial-gradient(ellipse at 80% 100%, rgba($accent, 0.12) 0%, transparent 60%);
-    animation: wave-pulse 3s ease-in-out infinite alternate;
-  }
-
-  .wave-svg {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 200%;
-    height: 60%;
-    opacity: 0.22;
-  }
-
-  .wave-layer {
-    fill: $accent;
-
-    &--back {
-      opacity: 0.4;
-      animation: wave-slide 8s linear infinite;
-    }
-
-    &--front {
-      opacity: 0.8;
-      animation: wave-slide 5s linear infinite reverse;
-    }
-  }
-
-  &__header,
-  &__content {
-    position: relative;
-    z-index: 1;
-  }
-
-  &__role-wrap {
+  &--user {
+    max-width: 72%;
+    background: var(--orange);
+    color: var(--on-orange);
+    border-radius: 26px 26px 8px 26px;
+    padding: 14px 20px 16px;
     display: flex;
-    align-items: center;
-    gap: 0.5rem;
-  }
+    flex-direction: column;
+    gap: 4px;
 
-  &__speaking-badge {
-    background-color: rgba($accent, 0.15);
-    color: $accent;
-    border: 1px solid rgba($accent, 0.35);
-    border-radius: $radius-full;
-    padding: 0.1rem 0.45rem;
-    font-size: 0.65rem;
-    font-weight: 600;
-    letter-spacing: 0.03em;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.3rem;
-    font-family: inherit;
-    text-transform: uppercase;
-    transition: all 0.2s ease;
-    animation: badge-pulse 2s infinite;
-
-    &:hover {
-      background-color: rgba($accent, 0.25);
-      border-color: $accent;
-    }
-
-    .stop-hint {
-      opacity: 0.6;
-      font-weight: 400;
-      text-transform: lowercase;
-    }
-  }
-
-  &__header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 0.75rem;
-    margin-bottom: 0.35rem;
-  }
-
-  &__role {
-    font-size: 0.75rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-  }
-
-  &__meta {
-    font-size: 0.7rem;
-    color: $text-muted;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.3rem;
-    font-family: monospace;
-    background-color: rgba(255, 255, 255, 0.04);
-    padding: 0.1rem 0.35rem;
-    border-radius: $radius-sm;
-
-    .cost-tag {
-      color: $accent;
+    .bubble__header-user {
+      font-family: var(--font-mono);
+      font-size: 11px;
       font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      opacity: 0.85;
     }
 
-    .meta-dot {
-      opacity: 0.5;
+    .bubble__content {
+      font-size: 17px;
+      line-height: 1.45;
+      word-break: break-word;
+      white-space: pre-wrap;
+    }
+
+    @media (max-width: 600px) {
+      max-width: 86%;
+      border-radius: 22px 22px 6px 22px;
+      padding: 12px 16px;
+      font-size: 15px;
     }
   }
 
-  &__content {
-    font-size: 0.95rem;
-    line-height: 1.5;
-    white-space: pre-wrap;
+  &--assistant {
+    max-width: 78%;
+    background: var(--bg-sunken);
+    color: var(--ink);
+    border-radius: 26px 26px 26px 8px;
+    padding: 14px 20px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
 
-    &--streaming::after {
-      content: '';
-      display: inline-block;
-      width: 0.5em;
-      height: 0.5em;
-      margin-left: 0.3em;
-      border-radius: 50%;
-      background-color: $accent;
-      animation: caret 1s ease-in-out infinite;
+    .bubble__content {
+      font-size: 17px;
+      line-height: 1.5;
+      word-break: break-word;
+      white-space: pre-wrap;
+    }
+
+    &.bubble--speaking {
+      box-shadow: 0 0 0 2px var(--orange);
+    }
+
+    @media (max-width: 600px) {
+      max-width: 88%;
+      border-radius: 22px 22px 22px 6px;
+      padding: 12px 16px 14px;
+      font-size: 15px;
     }
   }
 }
 
-@keyframes caret {
-  0%,
-  100% {
-    opacity: 0.3;
-  }
-  50% {
-    opacity: 1;
+.bubble__header-assistant {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.bubble__avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--btn-primary);
+  color: var(--orange);
+  display: grid;
+  place-items: center;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.04em;
+  flex: none;
+}
+
+.bubble__author {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.15;
+}
+
+.bubble__name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.bubble__role-label {
+  font-size: 11px;
+  color: var(--ink-2);
+}
+
+.bubble__speaking-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  background: rgba(255, 91, 53, 0.12);
+  border: 1px solid var(--orange);
+  border-radius: var(--radius-pill);
+  color: var(--orange-ink);
+  font-size: 11px;
+  cursor: pointer;
+
+  [data-theme='dark'] & {
+    color: var(--orange-ink-dark);
   }
 }
 
-@keyframes wave-slide {
-  0% {
-    transform: translateX(0);
-  }
-  100% {
-    transform: translateX(-50%);
-  }
-}
+.bubble__meta {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ink-2);
+  background: var(--bg-surface);
+  border-radius: var(--radius-pill);
+  padding: 5px 11px;
+  flex: none;
 
-@keyframes wave-pulse {
-  0% {
-    opacity: 0.5;
-  }
-  100% {
-    opacity: 1;
-  }
-}
+  .bubble__cost {
+    color: var(--orange-ink);
 
-@keyframes badge-pulse {
-  0%,
-  100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.04);
+    [data-theme='dark'] & {
+      color: var(--orange-ink-dark);
+    }
   }
 }
 </style>

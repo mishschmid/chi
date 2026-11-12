@@ -7,26 +7,38 @@ interface SidebarConversation {
   updatedAt: string
 }
 
-const props = defineProps<{
-  conversations: SidebarConversation[]
-  activeId: string | null
-  disabled?: boolean
-  open?: boolean
-  user?: { name?: string | null; email?: string | null } | null
-}>()
+const props = withDefaults(
+  defineProps<{
+    conversations: SidebarConversation[]
+    activeId: string | null
+    disabled?: boolean
+    open?: boolean
+    activeSection?: 'chats' | 'memory' | 'settings'
+    user?: { name?: string | null; email?: string | null } | null
+  }>(),
+  {
+    disabled: false,
+    open: false,
+    activeSection: 'chats',
+    user: null,
+  }
+)
 
 const emit = defineEmits<{
   select: [id: string]
   create: []
   signOut: []
+  close: []
 }>()
 
-const today = new Date()
-  .toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })
-  .toLowerCase()
+const todayFormatted = computed(() => {
+  return new Date()
+    .toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })
+    .toLowerCase()
+})
 
 const initials = computed(() => {
-  const source = props.user?.name || props.user?.email || '?'
+  const source = props.user?.name || props.user?.email || 'Chi'
   return source
     .split(/[\s@.]+/)
     .filter(Boolean)
@@ -42,105 +54,133 @@ const groups = computed(() => {
   const day = 86_400_000
 
   const buckets: { label: string; items: SidebarConversation[] }[] = [
-    { label: 'today', items: [] },
-    { label: 'yesterday', items: [] },
-    { label: 'this week', items: [] },
-    { label: 'earlier', items: [] },
+    { label: 'Today', items: [] },
+    { label: 'Yesterday', items: [] },
+    { label: 'This week', items: [] },
+    { label: 'Earlier', items: [] },
   ]
+
   for (const c of props.conversations) {
     const t = new Date(c.updatedAt).getTime()
     const index = t >= start ? 0 : t >= start - day ? 1 : t >= start - 6 * day ? 2 : 3
     buckets[index]!.items.push(c)
   }
+
   return buckets.filter((b) => b.items.length > 0)
 })
+
+const totalConversations = computed(() => props.conversations.length)
 </script>
 
 <template>
   <aside :class="['sidebar', { 'sidebar--open': open }]">
-    <header class="brand">
-      <h1 class="brand__mark" aria-label="chi">ch<span class="brand__i">ı</span></h1>
-      <span class="brand__date">{{ today }}</span>
-    </header>
-
-    <button class="new-chat" :disabled="disabled" @click="emit('create')">
-      <span>New conversation</span>
-      <span class="new-chat__plus" aria-hidden="true">+</span>
-    </button>
-
-    <nav class="nav">
-      <NuxtLink to="/memory" class="nav__link"> <span class="nav__index">01</span>Memory </NuxtLink>
-      <NuxtLink to="/settings" class="nav__link">
-        <span class="nav__index">02</span>Settings
-      </NuxtLink>
-    </nav>
-
-    <div class="threads">
-      <section v-for="(group, g) in groups" :key="group.label" class="threads__group">
-        <h3 class="threads__label">
-          <span>{{ group.label }}</span>
-          <span class="threads__count">{{ group.items.length }}</span>
-        </h3>
-        <button
-          v-for="(c, i) in group.items"
-          :key="c.id"
-          :class="['thread', { 'thread--active': c.id === activeId }]"
-          :style="{ animationDelay: `${(g * 3 + i) * 30}ms` }"
-          @click="emit('select', c.id)"
-        >
-          {{ c.title || 'Untitled chat' }}
-        </button>
-      </section>
-
-      <p v-if="conversations.length === 0" class="threads__empty">
-        Nothing written yet.<br />Say something.
-      </p>
-    </div>
-
-    <footer class="account">
-      <span class="account__avatar">{{ initials }}</span>
-      <div class="account__info">
-        <span class="account__name">{{ user?.name || 'Account' }}</span>
-        <span class="account__email">{{ user?.email }}</span>
+    <div class="sidebar__inner">
+      <!-- Header with brand mark & date -->
+      <div class="brand">
+        <NuxtLink to="/" class="brand__logo"> chi<span class="brand__dot">.</span> </NuxtLink>
+        <span class="brand__date">{{ todayFormatted }}</span>
       </div>
-      <button class="account__signout" @click="emit('signOut')">sign out</button>
-    </footer>
+
+      <!-- New conversation button -->
+      <button class="btn-new-chat" :disabled="disabled" @click="emit('create')">
+        <span>New conversation</span>
+        <span class="btn-new-chat__plus">
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="#111"
+            stroke-width="2.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+        </span>
+      </button>
+
+      <!-- Nav segmented pills -->
+      <div class="nav-pills">
+        <NuxtLink to="/" :class="['nav-pill', { 'nav-pill--active': activeSection === 'chats' }]">
+          <span>Chats</span>
+          <span class="nav-pill__badge">{{ totalConversations }}</span>
+        </NuxtLink>
+
+        <NuxtLink
+          to="/memory"
+          :class="['nav-pill', { 'nav-pill--active': activeSection === 'memory' }]"
+        >
+          <span>Memory</span>
+        </NuxtLink>
+
+        <NuxtLink
+          to="/settings"
+          :class="['nav-pill', { 'nav-pill--active': activeSection === 'settings' }]"
+        >
+          <span>Settings</span>
+        </NuxtLink>
+      </div>
+
+      <!-- Threads list -->
+      <div class="threads">
+        <template v-if="groups.length > 0">
+          <div v-for="group in groups" :key="group.label" class="threads__group">
+            <div class="threads__header">
+              <span>{{ group.label }}</span>
+              <span>{{ String(group.items.length).padStart(2, '0') }}</span>
+            </div>
+            <div class="threads__list">
+              <button
+                v-for="c in group.items"
+                :key="c.id"
+                :class="['thread-item', { 'thread-item--active': c.id === activeId }]"
+                @click="emit('select', c.id)"
+              >
+                <span v-if="c.id === activeId" class="thread-item__dot" />
+                <span class="thread-item__title">{{ c.title || 'Untitled chat' }}</span>
+              </button>
+            </div>
+          </div>
+        </template>
+        <div v-else class="threads__empty">
+          <span>No conversations yet.</span>
+        </div>
+      </div>
+
+      <!-- Footer User Card -->
+      <div class="account-card">
+        <div class="account-card__avatar">{{ initials }}</div>
+        <div class="account-card__meta">
+          <span class="account-card__name">{{ user?.name || 'Chi User' }}</span>
+          <span class="account-card__email">{{ user?.email || 'mish.schmid@gmail.com' }}</span>
+        </div>
+        <button class="account-card__signout" @click="emit('signOut')">Sign out</button>
+      </div>
+    </div>
   </aside>
 </template>
 
 <style scoped lang="scss">
 .sidebar {
-  position: relative;
-  width: 264px;
-  flex-shrink: 0;
+  width: 320px;
+  flex: none;
   display: flex;
   flex-direction: column;
-  padding: 1.5rem 1.25rem 1rem;
-  z-index: 20;
-  background-color: #0f0d0b;
-  border-right: 1px solid $border-subtle;
+  box-sizing: border-box;
 
-  // Paper grain
-  &::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    opacity: 0.06;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  }
-
-  > * {
-    position: relative;
-  }
-
-  @media (max-width: 768px) {
+  @media (max-width: 900px) {
     position: fixed;
     top: 0;
-    bottom: 0;
     left: 0;
+    bottom: 0;
+    width: 320px;
+    z-index: 100;
+    background: var(--bg-page);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.25);
     transform: translateX(-100%);
-    transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 
     &--open {
       transform: translateX(0);
@@ -148,323 +188,282 @@ const groups = computed(() => {
   }
 }
 
+.sidebar__inner {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 16px 8px 8px;
+  box-sizing: border-box;
+}
+
 .brand {
   display: flex;
-  align-items: baseline;
+  align-items: flex-end;
   justify-content: space-between;
-  padding-bottom: 1.5rem;
+  padding: 0 6px;
 
-  &__mark {
-    font-family: $font-display;
-    font-weight: 400;
-    font-size: 2.6rem;
-    line-height: 1;
-    letter-spacing: -0.04em;
-    color: $text-primary;
+  &__logo {
+    font-size: 46px;
+    font-weight: 500;
+    letter-spacing: -0.065em;
+    line-height: 0.8;
+    color: var(--ink);
+    text-decoration: none;
   }
 
-  // Dotless i with the ember as its tittle: the one spark of colour in the mark
-  &__i {
-    position: relative;
-
-    &::after {
-      content: '';
-      position: absolute;
-      left: 50%;
-      top: 0.02em;
-      width: 0.2em;
-      height: 0.2em;
-      border-radius: 50%;
-      background-color: $accent;
-      transform: translateX(-50%);
-      animation: ember 5s ease-in-out infinite;
-    }
+  &__dot {
+    color: var(--orange);
   }
 
   &__date {
-    font-family: $font-mono;
-    font-size: 0.68rem;
-    color: $text-muted;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--ink-2);
   }
 }
 
-.new-chat {
+.btn-new-chat {
+  height: 54px;
+  border-radius: var(--radius-pill);
+  background: var(--btn-primary);
+  color: var(--btn-primary-ink);
+  border: 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  width: 100%;
-  padding: 0.7rem 0.9rem;
-  border: none;
-  border-radius: 4px;
-  background-color: $text-primary;
-  color: #12100e;
-  font-family: inherit;
-  font-size: 0.86rem;
-  font-weight: 600;
+  padding: 0 8px 0 22px;
+  font-family: var(--font-sans);
+  font-size: 15px;
+  font-weight: 500;
   cursor: pointer;
   transition:
-    background-color 0.2s ease,
-    transform 0.2s ease;
+    opacity 0.15s ease,
+    background-color 0.15s ease;
 
-  &__plus {
-    font-family: $font-mono;
-    font-size: 1.1rem;
-    font-weight: 400;
-    line-height: 1;
-    transition: transform 0.3s cubic-bezier(0.3, 1.5, 0.5, 1);
-  }
-
-  &:hover:not(:disabled) {
-    background-color: $accent;
-
-    .new-chat__plus {
-      transform: rotate(90deg);
-    }
-  }
-
-  &:active:not(:disabled) {
-    transform: translateY(1px);
+  &:hover {
+    opacity: 0.92;
   }
 
   &:disabled {
-    opacity: 0.4;
+    opacity: 0.5;
     cursor: not-allowed;
+  }
+
+  &__plus {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: var(--orange);
+    display: grid;
+    place-items: center;
   }
 }
 
-.nav {
+.nav-pills {
   display: flex;
-  flex-direction: column;
-  margin: 1.25rem 0 0.5rem;
-  border-top: 1px solid $border-subtle;
+  gap: 6px;
+}
 
-  &__link {
-    display: flex;
-    align-items: baseline;
-    gap: 0.75rem;
-    padding: 0.6rem 0;
-    border-bottom: 1px solid $border-subtle;
-    font-size: 0.86rem;
-    color: $text-secondary;
-    text-decoration: none;
-    transition:
-      color 0.2s,
-      padding-left 0.25s ease;
+.nav-pill {
+  height: 40px;
+  border-radius: var(--radius-pill);
+  background: var(--bg-surface);
+  color: var(--ink);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 16px;
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
 
-    &:hover,
-    &.router-link-active {
-      color: $text-primary;
-      padding-left: 0.35rem;
+  &:hover {
+    background: var(--bg-sunken);
+  }
 
-      .nav__index {
-        color: $accent;
-      }
+  &--active {
+    background: var(--btn-primary);
+    color: var(--btn-primary-ink);
+    padding: 0 6px 0 16px;
+
+    &:hover {
+      background: var(--btn-primary);
+    }
+
+    .nav-pill__badge {
+      background: var(--orange);
+      color: var(--on-orange);
     }
   }
 
-  &__index {
-    font-family: $font-mono;
-    font-size: 0.66rem;
-    color: $text-muted;
-    transition: color 0.2s;
+  &__badge {
+    min-width: 24px;
+    height: 24px;
+    border-radius: var(--radius-pill);
+    background: var(--bg-sunken);
+    color: var(--ink);
+    display: grid;
+    place-items: center;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 0 6px;
   }
 }
 
 .threads {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
   flex: 1;
+  min-height: 0;
   overflow-y: auto;
-  margin: 0 -0.5rem;
-  padding: 0 0.5rem;
-  scrollbar-width: thin;
-  scrollbar-color: $border-strong transparent;
+  padding-right: 4px;
 
   &__group {
-    margin-top: 1.1rem;
-  }
-
-  &__label {
     display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    margin-bottom: 0.35rem;
-    font-family: $font-mono;
-    font-size: 0.66rem;
-    font-weight: 400;
-    color: $text-muted;
-
-    &::after {
-      content: '';
-      flex: 1;
-      height: 1px;
-      background-color: $border-subtle;
-      order: 1;
-    }
+    flex-direction: column;
+    gap: 2px;
   }
 
-  &__count {
-    order: 2;
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    padding: 6px 14px 8px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--ink-2);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  &__list {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
   }
 
   &__empty {
-    margin-top: 2rem;
-    font-family: $font-display;
-    font-size: 1rem;
-    line-height: 1.4;
-    color: $text-muted;
+    padding: 16px 14px;
+    font-size: 13px;
+    color: var(--ink-3);
   }
 }
 
-.thread {
-  position: relative;
-  display: block;
+.thread-item {
   width: 100%;
-  padding: 0.42rem 0 0.42rem 0.9rem;
-  border: none;
-  background: none;
-  text-align: left;
-  font-family: inherit;
-  font-size: 0.86rem;
-  color: $text-secondary;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 13px 14px;
+  border-radius: 18px;
+  border: 0;
+  background: transparent;
+  font-size: 15px;
+  color: var(--ink-2);
   cursor: pointer;
-  opacity: 0;
-  animation: rise 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
-  transition: color 0.15s;
-
-  &::before {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: 50%;
-    width: 5px;
-    height: 5px;
-    border-radius: 1px;
-    background-color: $text-muted;
-    transform: translateY(-50%) scale(0);
-    transition:
-      transform 0.2s ease,
-      background-color 0.2s;
-  }
+  text-align: left;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
 
   &:hover {
-    color: $text-primary;
-
-    &::before {
-      transform: translateY(-50%) scale(1);
-    }
+    background: rgba(255, 255, 255, 0.4);
+    color: var(--ink);
   }
 
   &--active {
-    color: $text-primary;
+    background: var(--bg-surface) !important;
+    color: var(--ink);
+    font-weight: 500;
+  }
 
-    &::before {
-      background-color: $accent;
-      transform: translateY(-50%) scale(1);
-    }
+  &__dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--orange);
+    flex: none;
+  }
+
+  &__title {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 }
 
-.account {
+.account-card {
   display: flex;
   align-items: center;
-  gap: 0.7rem;
-  padding-top: 0.9rem;
-  margin-top: 0.5rem;
-  border-top: 1px solid $border-subtle;
+  gap: 12px;
+  background: var(--bg-surface);
+  border-radius: var(--radius-card);
+  padding: 10px;
+  box-sizing: border-box;
 
   &__avatar {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: var(--bg-sunken);
+    color: var(--ink);
     display: grid;
     place-items: center;
-    width: 32px;
-    height: 32px;
-    flex-shrink: 0;
-    border: 1px solid $border-strong;
-    border-radius: 4px;
-    font-family: $font-display;
-    font-size: 0.85rem;
-    color: $text-primary;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    flex: none;
   }
 
-  &__info {
-    flex: 1;
-    min-width: 0;
+  &__meta {
     display: flex;
     flex-direction: column;
-    gap: 0.1rem;
+    line-height: 1.2;
+    min-width: 0;
+    flex: 1;
   }
 
-  &__name,
-  &__email {
+  &__name {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ink);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
   }
 
-  &__name {
-    font-size: 0.82rem;
-    font-weight: 600;
-  }
-
   &__email {
-    font-family: $font-mono;
-    font-size: 0.64rem;
-    color: $text-muted;
+    font-size: 12px;
+    color: var(--ink-2);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   &__signout {
-    border: none;
-    background: none;
-    padding: 0.25rem 0;
-    font-family: $font-mono;
-    font-size: 0.66rem;
-    color: $text-muted;
+    height: 34px;
+    border-radius: var(--radius-pill);
+    background: var(--bg-sunken);
+    border: 0;
+    color: var(--ink);
+    display: flex;
+    align-items: center;
+    padding: 0 14px;
+    font-size: 12px;
+    font-weight: 500;
+    flex: none;
     cursor: pointer;
-    text-decoration: underline;
-    text-decoration-color: transparent;
-    text-underline-offset: 3px;
-    transition:
-      color 0.2s,
-      text-decoration-color 0.2s;
+    transition: background-color 0.15s ease;
 
     &:hover {
-      color: $accent;
-      text-decoration-color: currentColor;
+      opacity: 0.85;
     }
-  }
-}
-
-@keyframes rise {
-  from {
-    opacity: 0;
-    transform: translateY(4px);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
-
-// Like a coal catching air now and then
-@keyframes ember {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  45% {
-    opacity: 0.55;
-  }
-  55% {
-    opacity: 1;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .brand__i::after,
-  .thread {
-    animation: none;
-    opacity: 1;
   }
 }
 </style>

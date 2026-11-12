@@ -12,14 +12,14 @@ export default defineNuxtConfig({
           name: 'viewport',
           content: 'width=device-width, initial-scale=1, interactive-widget=resizes-content',
         },
-        { name: 'theme-color', content: '#12100e' },
+        { name: 'theme-color', content: '#ECECEA' },
       ],
       link: [
         { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
         { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },
         {
           rel: 'stylesheet',
-          href: 'https://fonts.googleapis.com/css2?family=Young+Serif&family=Geist+Mono:wght@400;500&display=swap',
+          href: 'https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@300;400;500;600&family=Geist+Mono:wght@400;500&display=swap',
         },
       ],
     },
@@ -28,7 +28,7 @@ export default defineNuxtConfig({
   css: ['~/assets/styles/global.scss'],
 
   runtimeConfig: {
-    databaseUrl: process.env.DATABASE_URL ?? 'postgresql://chi:chi@localhost:5433/chi',
+    databaseUrl: process.env.DATABASE_URL ?? 'postgresql://chi:chi@localhost:5434/chi',
     devUserId: process.env.DEV_USER_ID ?? '00000000-0000-0000-0000-000000000001',
     llmProvider: process.env.LLM_PROVIDER ?? 'openai',
     llmChatModel: process.env.LLM_CHAT_MODEL ?? 'gpt-4o',

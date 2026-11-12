@@ -2,86 +2,113 @@
 import { computed } from 'vue'
 import { useCostStats } from '~/composables/useCostStats'
 
-const { activePeriod, currentStats, label, cyclePeriod, refresh } = useCostStats()
+const props = withDefaults(
+  defineProps<{
+    variant?: 'standard' | 'hero'
+  }>(),
+  {
+    variant: 'standard',
+  }
+)
+
+const { currentStats, label, cyclePeriod, refresh } = useCostStats()
 
 defineExpose({
   refresh,
 })
 
 const formattedCost = computed(() => {
-  if (!currentStats.value) return '$0.00'
+  if (!currentStats.value) return '$0.000'
   const val = currentStats.value.costUsd
   if (val > 0 && val < 0.001) return '<$0.001'
   return `$${val.toFixed(3)}`
 })
 
 const formattedTokens = computed(() => {
-  if (!currentStats.value || !currentStats.value.tokens) return '0'
+  if (!currentStats.value || !currentStats.value.tokens) return '0 tkn'
   const t = currentStats.value.tokens
-  if (t >= 1_000_000) return `${(t / 1_000_000).toFixed(1)}M`
-  if (t >= 1_000) return `${(t / 1_000).toFixed(1)}k`
-  return `${t}`
+  if (t >= 1_000_000) return `${(t / 1_000_000).toFixed(1)}M tkn`
+  if (t >= 1_000) return `${(t / 1_000).toFixed(1)}k tkn`
+  return `${t} tkn`
 })
 </script>
 
 <template>
   <button
-    class="cost-toggle"
-    :title="`Click to toggle timeframe: Today → 7 Days → 30 Days. Total tokens: ${currentStats?.tokens || 0}`"
+    :class="['cost-badge', `cost-badge--${variant}`]"
+    :title="`Click to toggle timeframe (${label}). Total tokens: ${currentStats?.tokens || 0}`"
     @click="cyclePeriod"
   >
-    <span class="period-pill">{{ label }}</span>
-    <span class="cost-amount">{{ formattedCost }}</span>
-    <span class="tokens-amount">({{ formattedTokens }} tkn)</span>
+    <span class="cost-badge__period">{{ label }}</span>
+    <span class="cost-badge__cost">{{ formattedCost }}</span>
+    <span class="cost-badge__tokens">{{ formattedTokens }}</span>
   </button>
 </template>
 
 <style scoped lang="scss">
-.cost-toggle {
-  background-color: rgba(255, 255, 255, 0.03);
-  border: 1px solid $border-subtle;
-  color: $text-secondary;
-  border-radius: $radius-full;
-  padding: 0.25rem 0.65rem;
-  font-size: 0.75rem;
-  font-family: monospace;
+.cost-badge {
   display: inline-flex;
   align-items: center;
-  gap: 0.4rem;
+  gap: 8px;
+  border-radius: var(--radius-pill);
+  padding: 5px 14px 5px 5px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  flex: none;
+  border: none;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: opacity 0.15s ease;
   user-select: none;
-  white-space: nowrap;
-  flex-shrink: 0;
 
   &:hover {
-    background-color: $bg-surface-elevated;
-    border-color: $border-strong;
-    color: $text-primary;
+    opacity: 0.9;
   }
 
-  .period-pill {
-    background-color: rgba($accent, 0.12);
-    color: $accent;
-    font-size: 0.65rem;
-    font-weight: 600;
-    padding: 0.1rem 0.35rem;
-    border-radius: $radius-sm;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
+  &--standard {
+    background: var(--bg-sunken);
+    color: var(--ink);
+
+    .cost-badge__period {
+      background: var(--orange);
+      color: var(--on-orange);
+      border-radius: var(--radius-pill);
+      padding: 4px 10px;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .cost-badge__cost {
+      font-weight: 500;
+      color: var(--ink);
+    }
+
+    .cost-badge__tokens {
+      color: var(--ink-2);
+    }
   }
 
-  .cost-amount {
-    font-weight: 600;
-    color: $text-primary;
-  }
+  &--hero {
+    background: rgba(17, 17, 17, 0.1);
+    color: var(--on-orange);
 
-  .tokens-amount {
-    color: $text-muted;
-    font-size: 0.7rem;
+    .cost-badge__period {
+      background: #111111;
+      color: var(--orange);
+      border-radius: var(--radius-pill);
+      padding: 4px 10px;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
 
-    @media (max-width: 600px) {
-      display: none;
+    .cost-badge__cost {
+      font-weight: 500;
+      color: #111111;
+    }
+
+    .cost-badge__tokens {
+      color: var(--on-orange-muted);
     }
   }
 }
