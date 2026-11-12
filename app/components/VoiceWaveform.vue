@@ -5,7 +5,7 @@ const props = defineProps<{
   analyser: AnalyserNode | null
 }>()
 
-const BAR_COUNT = 29
+const BAR_COUNT = 31
 const bars = ref<number[]>(Array(BAR_COUNT).fill(0))
 
 let frame = 0
@@ -19,16 +19,16 @@ function tick() {
     node.getByteTimeDomainData(buffer)
     let sum = 0
     for (const v of buffer) sum += ((v - 128) / 128) ** 2
-    level = Math.min(1, Math.sqrt(sum / buffer.length) * 4)
+    level = Math.min(1, Math.sqrt(sum / buffer.length) * 4.5)
   }
 
   const t = performance.now() / 1000
   const mid = (BAR_COUNT - 1) / 2
   bars.value = bars.value.map((prev, i) => {
-    // Bell-shaped envelope: centre bars react most, edges stay as dots.
+    // Bell-shaped envelope: center bars react most, edges stay as subtle dots.
     const d = Math.abs(i - mid) / mid
-    const envelope = Math.exp(-d * d * 4)
-    const jitter = 0.65 + 0.35 * Math.sin(t * 9 + i * 1.7)
+    const envelope = Math.exp(-d * d * 3.5)
+    const jitter = 0.7 + 0.3 * Math.sin(t * 8 + i * 1.5)
     const target = level * envelope * jitter
     return prev + (target - prev) * (target > prev ? 0.5 : 0.15)
   })
@@ -39,7 +39,9 @@ onMounted(() => {
   frame = requestAnimationFrame(tick)
 })
 
-onBeforeUnmount(() => cancelAnimationFrame(frame))
+onBeforeUnmount(() => {
+  if (frame) cancelAnimationFrame(frame)
+})
 </script>
 
 <template>
@@ -48,7 +50,7 @@ onBeforeUnmount(() => cancelAnimationFrame(frame))
       v-for="(v, i) in bars"
       :key="i"
       class="waveform__bar"
-      :style="{ height: `${4 + v * 28}px`, opacity: 0.35 + Math.min(v * 2, 0.65) }"
+      :style="{ height: `${4 + v * 24}px`, opacity: 0.35 + Math.min(v * 2, 0.65) }"
     />
   </div>
 </template>
@@ -60,12 +62,14 @@ onBeforeUnmount(() => cancelAnimationFrame(frame))
   justify-content: center;
   gap: 4px;
   height: 36px;
+  width: 100%;
+  cursor: pointer;
 
   &__bar {
     width: 3px;
     min-height: 4px;
-    border-radius: $radius-full;
-    background-color: $text-primary;
+    border-radius: var(--radius-pill, 999px);
+    background-color: currentColor;
   }
 }
 </style>

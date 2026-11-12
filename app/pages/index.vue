@@ -9,6 +9,7 @@ import ChatMessage from '~/components/ChatMessage.vue'
 import CostBadge from '~/components/CostBadge.vue'
 import AppSidebar from '~/components/AppSidebar.vue'
 import AmbientBackground from '~/components/AmbientBackground.vue'
+import VoiceWaveform from '~/components/VoiceWaveform.vue'
 
 const { user, signOut } = useAuth()
 const { orangeStartScreen } = useTheme()
@@ -30,6 +31,7 @@ const {
   isRecording,
   isTranscribing,
   error: recorderError,
+  analyser,
   startRecording,
   stopRecording,
 } = useAudioRecorder()
@@ -237,11 +239,16 @@ function handleCreateConversation() {
           <!-- Hero Composer -->
           <div class="hero-composer">
             <button
-              :class="['mic-btn', { 'mic-btn--active': isRecording }]"
-              :title="isRecording ? 'Stop recording' : 'Start voice input'"
+              :class="[
+                'mic-btn',
+                { 'mic-btn--active': isRecording, 'mic-btn--recording': isRecording },
+              ]"
+              :title="isRecording ? 'Click to stop and send' : 'Start voice input'"
               @click="toggleVoiceRecording"
             >
+              <span v-if="isRecording" class="stop-icon" />
               <svg
+                v-else
                 width="20"
                 height="20"
                 viewBox="0 0 24 24"
@@ -257,15 +264,31 @@ function handleCreateConversation() {
               </svg>
             </button>
 
+            <div
+              v-if="isRecording"
+              class="hero-waveform-wrap"
+              title="Click to stop and send"
+              @click="toggleVoiceRecording"
+            >
+              <VoiceWaveform :analyser="analyser" />
+            </div>
+
             <input
+              v-else
               v-model="inputMessage"
               class="hero-input"
               type="text"
-              :placeholder="isRecording ? 'Listening…' : 'Ask Chi anything…'"
+              placeholder="Ask Chi anything…"
               @keydown="handleKeydown"
             />
 
-            <button class="hero-send-btn" @click="handleSend">Send</button>
+            <button
+              class="hero-send-btn"
+              :disabled="!isRecording && !inputMessage.trim()"
+              @click="isRecording ? toggleVoiceRecording() : handleSend()"
+            >
+              Send
+            </button>
           </div>
 
           <!-- Quick Topic Chips -->
@@ -367,11 +390,19 @@ function handleCreateConversation() {
         <footer class="chat-composer-wrap">
           <div class="chat-composer">
             <button
-              :class="['composer-mic-btn', { 'composer-mic-btn--active': isRecording }]"
-              :title="isRecording ? 'Stop recording' : 'Voice input'"
+              :class="[
+                'composer-mic-btn',
+                {
+                  'composer-mic-btn--active': isRecording,
+                  'composer-mic-btn--recording': isRecording,
+                },
+              ]"
+              :title="isRecording ? 'Click to stop and send' : 'Voice input'"
               @click="toggleVoiceRecording"
             >
+              <span v-if="isRecording" class="stop-icon" />
               <svg
+                v-else
                 width="19"
                 height="19"
                 viewBox="0 0 24 24"
@@ -387,15 +418,31 @@ function handleCreateConversation() {
               </svg>
             </button>
 
+            <div
+              v-if="isRecording"
+              class="composer-waveform-wrap"
+              title="Click to stop and send"
+              @click="toggleVoiceRecording"
+            >
+              <VoiceWaveform :analyser="analyser" />
+            </div>
+
             <input
+              v-else
               v-model="inputMessage"
               class="composer-input"
               type="text"
-              :placeholder="isRecording ? 'Listening…' : 'Ask Chi anything…'"
+              placeholder="Ask Chi anything…"
               @keydown="handleKeydown"
             />
 
-            <button class="composer-send-btn" @click="handleSend">Send</button>
+            <button
+              class="composer-send-btn"
+              :disabled="!isRecording && !inputMessage.trim()"
+              @click="isRecording ? toggleVoiceRecording() : handleSend()"
+            >
+              Send
+            </button>
           </div>
         </footer>
       </main>
@@ -618,6 +665,30 @@ function handleCreateConversation() {
       background: #111;
       color: #fff;
     }
+
+    &--recording {
+      background: #111111 !important;
+      box-shadow:
+        0 0 0 2px var(--orange),
+        0 0 0 4px #111111;
+      animation: mic-pulse-hero 1.6s ease-out infinite;
+
+      .stop-icon {
+        background-color: var(--orange);
+      }
+    }
+  }
+
+  .hero-waveform-wrap {
+    flex: 1;
+    min-width: 0;
+    height: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    padding: 0 16px;
+    color: var(--on-orange);
   }
 
   .hero-input {
@@ -858,6 +929,39 @@ function handleCreateConversation() {
       background: var(--orange);
       color: var(--on-orange);
     }
+
+    &--recording {
+      background: var(--orange) !important;
+      color: #fff !important;
+      box-shadow:
+        0 0 0 2px var(--bg-surface),
+        0 0 0 4px var(--orange);
+      animation: mic-pulse 1.6s ease-out infinite;
+
+      .stop-icon {
+        background-color: #ffffff;
+      }
+    }
+  }
+
+  .composer-waveform-wrap {
+    flex: 1;
+    min-width: 0;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    padding: 0 16px;
+    color: var(--ink);
+  }
+
+  .stop-icon {
+    width: 14px;
+    height: 14px;
+    border-radius: 3px;
+    background-color: #ffffff;
+    display: block;
   }
 
   .composer-input {
@@ -890,6 +994,42 @@ function handleCreateConversation() {
     &:hover {
       opacity: 0.9;
     }
+  }
+}
+
+@keyframes mic-pulse {
+  0% {
+    box-shadow:
+      0 0 0 2px var(--bg-surface),
+      0 0 0 3px rgba(255, 91, 53, 0.8);
+  }
+  50% {
+    box-shadow:
+      0 0 0 2px var(--bg-surface),
+      0 0 0 6px rgba(255, 91, 53, 0.4);
+  }
+  100% {
+    box-shadow:
+      0 0 0 2px var(--bg-surface),
+      0 0 0 3px rgba(255, 91, 53, 0.8);
+  }
+}
+
+@keyframes mic-pulse-hero {
+  0% {
+    box-shadow:
+      0 0 0 2px var(--orange),
+      0 0 0 3px rgba(17, 17, 17, 0.8);
+  }
+  50% {
+    box-shadow:
+      0 0 0 2px var(--orange),
+      0 0 0 6px rgba(17, 17, 17, 0.4);
+  }
+  100% {
+    box-shadow:
+      0 0 0 2px var(--orange),
+      0 0 0 3px rgba(17, 17, 17, 0.8);
   }
 }
 </style>
