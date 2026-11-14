@@ -11,7 +11,7 @@ ARG NODE_VERSION=24-alpine
 FROM node:${NODE_VERSION} AS deps
 WORKDIR /app
 
-RUN corepack enable && corepack prepare yarn@4.17.0 --activate
+RUN corepack enable && corepack prepare yarn@4.12.0 --activate
 
 COPY package.json yarn.lock .yarnrc.yml ./
 RUN yarn install --immutable
@@ -20,7 +20,7 @@ RUN yarn install --immutable
 FROM node:${NODE_VERSION} AS build
 WORKDIR /app
 
-RUN corepack enable && corepack prepare yarn@4.17.0 --activate
+RUN corepack enable && corepack prepare yarn@4.12.0 --activate
 
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .

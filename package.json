@@ -2,7 +2,7 @@
   "name": "cima",
   "private": true,
   "type": "module",
-  "packageManager": "yarn@4.17.0",
+  "packageManager": "yarn@4.12.0",
   "scripts": {
     "dev": "nuxt dev",
     "build": "nuxt build",
