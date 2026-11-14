@@ -1,6 +1,6 @@
-# Task 01 – Chi Skeleton
+# Task 01 – Cima Skeleton
 
-**Goal:** a working text chat with Chi. It streams replies from OpenAI or Anthropic, saves conversations in Postgres, and remembers basic facts about the user across conversations.
+**Goal:** a working text chat with Cima. It streams replies from OpenAI or Anthropic, saves conversations in Postgres, and remembers basic facts about the user across conversations.
 
 **Out of scope (later tasks):** voice, real login/auth service, memories searched by meaning (pgvector queries), connections to child apps, deployment.
 
@@ -12,23 +12,23 @@ Do the subtasks **in order**. After each one, run `yarn typecheck`, `yarn lint` 
 
 Create the Nuxt project in this repo, using the same setup as `../sansa`.
 
-- `package.json`: name `chi`, `"type": "module"`, `packageManager: yarn@4.13.0`. Scripts: `dev`, `build`, `preview`, `postinstall` (`nuxt prepare`), `test`, `test:run`, `typecheck` (`nuxt typecheck`), `lint`, `format`, `db:generate`, `db:migrate`, `db:studio`.
+- `package.json`: name `cima`, `"type": "module"`, `packageManager: yarn@4.13.0`. Scripts: `dev`, `build`, `preview`, `postinstall` (`nuxt prepare`), `test`, `test:run`, `typecheck` (`nuxt typecheck`), `lint`, `format`, `db:generate`, `db:migrate`, `db:studio`.
 - Dependencies: `nuxt`, `vue`, `vue-router`, `drizzle-orm`, `pg`.
 - Dev dependencies: `typescript`, `vue-tsc`, `sass-embedded`, `prettier`, `vitest`, `@nuxt/test-utils`, `happy-dom`, `drizzle-kit`, `@types/pg`, `tsx`. Use the same versions as `../sansa/package.json`.
 - `nuxt.config.ts`: `compatibilityDate`, `future.compatibilityVersion: 4`, `typescript.strict: true`, SCSS global + variables (as in sansa), `routeRules` `/api/**` with no caching. Leave out everything maplibre-, Strava- and Garmin-related.
-- `app/app.vue`, `app/pages/index.vue` (placeholder "Chi"), `app/assets/styles/global.scss`, `app/assets/styles/_variables.scss` (a few colour and spacing variables, dark theme).
+- `app/app.vue`, `app/pages/index.vue` (placeholder "Cima"), `app/assets/styles/global.scss`, `app/assets/styles/_variables.scss` (a few colour and spacing variables, dark theme).
 - `.prettierrc` (copy from sansa if it exists), `.gitignore` (node_modules, .nuxt, .output, .env, postgres-data), `.env.example`.
 - `vitest.config.ts` (copy from sansa).
 
 **Done when:**
 
-- [ ] `yarn install` and `yarn dev` work, and http://localhost:3000 shows "Chi"
+- [ ] `yarn install` and `yarn dev` work, and http://localhost:3000 shows "Cima"
 - [ ] `yarn typecheck`, `yarn lint` and `yarn test:run` pass (add one trivial test so Vitest has something to run)
 
 ## 1.2 Database
 
-- `docker-compose.yml`: Postgres service using the image **`pgvector/pgvector:pg17`** (not plain postgres). User, password and db are all `chi`, port `5432`, volume `./postgres-data`, plus a healthcheck (copy the structure from sansa). If sansa's Postgres is also running locally, map Chi to port `5433` and say so in the README.
-- `drizzle.config.ts` (as in sansa, default URL `postgresql://chi:chi@localhost:5432/chi`).
+- `docker-compose.yml`: Postgres service using the image **`pgvector/pgvector:pg17`** (not plain postgres). User, password and db are all `cima`, port `5434`, volume `./postgres-data`, plus a healthcheck (copy the structure from sansa).
+- `drizzle.config.ts` (as in sansa, default URL `postgresql://cima:cima@localhost:5434/cima`).
 - `server/database/index.ts` (as in sansa).
 - `server/database/schema.ts` with these tables:
 
@@ -86,7 +86,7 @@ Create `server/utils/llm/`:
 
 ## 1.4 Chat API
 
-- `server/utils/chat/prompt.ts`: `buildSystemPrompt(facts: ProfileFact[]): string`. Chi's personality: warm, curious, concise, a friend who knows the user; answers in the user's language (DE/FR/IT/EN). If there are facts, list them under "What you know about the user". Keep it under ~40 lines.
+- `server/utils/chat/prompt.ts`: `buildSystemPrompt(facts: ProfileFact[]): string`. Cima's personality: warm, curious, concise, a friend who knows the user; answers in the user's language (DE/FR/IT/EN). If there are facts, list them under "What you know about the user". Keep it under ~40 lines.
 - `server/api/conversations/index.get.ts`: lists the current user's conversations (newest first).
 - `server/api/conversations/index.post.ts`: creates a conversation and returns it.
 - `server/api/conversations/[id]/messages.get.ts`: returns the messages of a conversation. Returns 404 if the conversation doesn't belong to the current user.
@@ -102,7 +102,7 @@ Create `server/utils/llm/`:
 
 **Done when:**
 
-- [ ] `curl -N -X POST localhost:3000/api/conversations/<id>/messages -H 'content-type: application/json' -d '{"content":"Hi Chi"}'` streams a reply
+- [ ] `curl -N -X POST localhost:3000/api/conversations/<id>/messages -H 'content-type: application/json' -d '{"content":"Hi Cima"}'` streams a reply
 - [ ] Both messages are in the database afterwards
 
 ## 1.5 Chat UI
@@ -128,7 +128,7 @@ Create `server/utils/memory/`:
   2. Call `getLlm('extraction').completeJson` with a prompt asking for **lasting** facts about the user (identity, goals, preferences, important people, health context). It must ignore one-off details and avoid repeating existing facts. Expected JSON: `{ "add": [{ "fact": string, "category": string }], "update": [{ "id": string, "fact": string }] }`.
   3. Validate the result (drop unknown categories, empty facts and unknown IDs), then save it.
 - API: `server/api/memory/facts.get.ts`, `server/api/memory/facts/[id].patch.ts`, `server/api/memory/facts/[id].delete.ts`.
-- `app/pages/memory.vue`: "What Chi knows about you". Lists facts grouped by category, and lets the user edit and delete them. Link to it from the chat page.
+- `app/pages/memory.vue`: "What Cima knows about you". Lists facts grouped by category, and lets the user edit and delete them. Link to it from the chat page.
 
 **Tests:** `tests/server/memory/extract.test.ts`, with a mocked LLM:
 
@@ -139,12 +139,12 @@ Create `server/utils/memory/`:
 **Done when:**
 
 - [ ] After saying "I'm training for a half marathon in April", a fact shows up on `/memory` within a few seconds
-- [ ] In a **new** conversation, Chi knows about the half marathon
-- [ ] Editing or deleting a fact on `/memory` changes what Chi knows
+- [ ] In a **new** conversation, Cima knows about the half marathon
+- [ ] Editing or deleting a fact on `/memory` changes what Cima knows
 
 ## 1.7 README
 
-`README.md`: what Chi is (2 sentences, linking to `docs/`), setup steps (env, docker, migrate, seed, dev), env variables, scripts.
+`README.md`: what Cima is (2 sentences, linking to `docs/`), setup steps (env, docker, migrate, seed, dev), env variables, scripts.
 
 **Done when:**
 

@@ -1,8 +1,8 @@
 # Task 06 – Watch Voice Endpoint & Device Tokens
 
-**Goal:** Give non-browser clients (first: the "Chi Voice" Android assistant app, used from a Garmin Fenix 8) a text-in / text-out endpoint. A device authenticates with a revocable bearer token, sends what the user said, and gets back a short, speakable reply. Speech-to-text and TTS happen on the phone, not on the server.
+**Goal:** Give non-browser clients (first: the "Cima Voice" Android assistant app, used from a Garmin Fenix 8) a text-in / text-out endpoint. A device authenticates with a revocable bearer token, sends what the user said, and gets back a short, speakable reply. Speech-to-text and TTS happen on the phone, not on the server.
 
-Flow: `Fenix 8 voice button → Android default assistant (Chi Voice) → STT → POST /api/voice/turn → TTS on watch speaker`.
+Flow: `Fenix 8 voice button → Android default assistant (Cima Voice) → STT → POST /api/voice/turn → TTS on watch speaker`.
 
 ---
 
@@ -17,7 +17,7 @@ Flow: `Fenix 8 voice button → Android default assistant (Chi Voice) → STT �
 
 ## 6.2 Token Utilities (`server/utils/deviceTokens.ts`)
 
-- `createDeviceToken(userId, name): Promise<{ token, record }>`: generates `chi_dev_<32 random bytes base64url>` and stores only the hash. The plaintext is returned exactly once.
+- `createDeviceToken(userId, name): Promise<{ token, record }>`: generates `cima_dev_<32 random bytes base64url>` and stores only the hash. The plaintext is returned exactly once.
 - `resolveDeviceToken(event): Promise<{ userId, deviceId } | null>`: reads `Authorization: Bearer …`, hashes it, looks it up with `revokedAt IS NULL`, and updates `lastUsedAt` (throttled to at most once a minute).
 - `revokeDeviceToken(userId, id)`.
 - Extend `getCurrentUserId` (or add `getUserIdFromSessionOrDevice`) so device-authenticated routes resolve the user from the token. The dev-user fallback must **not** apply to bearer requests: an invalid token → `401`.

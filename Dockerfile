@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1.7
 #
-# Multi-stage build for Chi.
+# Multi-stage build for Cima.
 # - deps:    install full dependencies for build
 # - build:   nuxt build
 # - runtime: minimal Node 24 image to run Nitro server
@@ -35,14 +35,14 @@ ENV NODE_ENV=production
 ENV NITRO_PORT=3000
 ENV NITRO_HOST=0.0.0.0
 
-RUN addgroup -S chi && adduser -S chi -G chi
+RUN addgroup -S cima && adduser -S cima -G cima
 
 # Copy compiled Nitro output
-COPY --from=build --chown=chi:chi /app/.output ./.output
+COPY --from=build --chown=cima:cima /app/.output ./.output
 # Copy migrations so migration runner or scripts can run if needed
-COPY --from=build --chown=chi:chi /app/drizzle ./drizzle
+COPY --from=build --chown=cima:cima /app/drizzle ./drizzle
 
-USER chi
+USER cima
 EXPOSE 3000
 
 CMD ["node", ".output/server/index.mjs"]

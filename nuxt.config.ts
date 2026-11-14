@@ -6,7 +6,7 @@ export default defineNuxtConfig({
 
   app: {
     head: {
-      title: 'Chi',
+      title: 'Cima',
       meta: [
         {
           name: 'viewport',
@@ -36,7 +36,7 @@ export default defineNuxtConfig({
   css: ['~/assets/styles/global.scss'],
 
   runtimeConfig: {
-    databaseUrl: process.env.DATABASE_URL ?? 'postgresql://chi:chi@localhost:5434/chi',
+    databaseUrl: process.env.DATABASE_URL ?? 'postgresql://cima:cima@localhost:5434/cima',
     devUserId: process.env.DEV_USER_ID ?? '00000000-0000-0000-0000-000000000001',
     llmProvider: process.env.LLM_PROVIDER ?? 'openai',
     llmChatModel: process.env.LLM_CHAT_MODEL ?? 'gpt-4o',

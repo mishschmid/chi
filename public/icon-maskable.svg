@@ -2,5 +2,5 @@
   <rect width="512" height="512" fill="#111111"/>
   <text x="50%" y="55%" text-anchor="middle" dominant-baseline="central"
         font-family="'Hanken Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif"
-        font-size="164" font-weight="600" letter-spacing="-10" fill="#ECECEA">chi<tspan fill="#FF5B35">.</tspan></text>
+        font-size="136" font-weight="600" letter-spacing="-7" fill="#ECECEA">cima<tspan fill="#FF5B35">.</tspan></text>
 </svg>

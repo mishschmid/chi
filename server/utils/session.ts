@@ -31,7 +31,7 @@ export async function getOptionalUser(event: H3Event) {
     return {
       id: process.env.DEV_USER_ID,
       name: 'Dev User',
-      email: 'dev@chi.test',
+      email: 'dev@cima.test',
       role: 'user',
     }
   }

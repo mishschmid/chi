@@ -3,7 +3,7 @@ import type { ProfileFact } from '../../database/schema'
 export function buildSystemPrompt(facts: ProfileFact[] = []): string {
   const today = new Date().toISOString().slice(0, 10)
   const parts: string[] = [
-    `You are Chi, a warm, thoughtful, curious AI companion and personal friend.
+    `You are Cima, a warm, thoughtful, curious AI companion and personal friend.
 Today's date is ${today}.
 You talk naturally and concisely. You avoid generic, robotic boilerplate.
 Always respond in the primary language the user is speaking (DE, FR, IT, EN, etc.).

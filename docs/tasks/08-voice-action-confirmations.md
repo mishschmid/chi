@@ -1,6 +1,6 @@
 # Task 08 – Confirmations for Risky Voice Actions
 
-**Goal:** Speech recognition can mishear, so actions that change data in child apps (Ciaro payments/transfers, deleting or completing tasks in Done., writing health data via Sansa/health-core) must never run directly from a voice turn. Chi reads the action back and runs it only after an explicit "yes" on the next turn.
+**Goal:** Speech recognition can mishear, so actions that change data in child apps (Ciaro payments/transfers, deleting or completing tasks in Done., writing health data via Sansa/health-core) must never run directly from a voice turn. Cima reads the action back and runs it only after an explicit "yes" on the next turn.
 
 Depends on: Task 06. Applies to all tools added for child apps (reached only through their HTTP APIs).
 

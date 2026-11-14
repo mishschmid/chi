@@ -1,6 +1,6 @@
 # Task 05 – Semantic Vector Memory (pgvector)
 
-**Goal:** Upgrade Chi's memory system from loading all facts to performing semantic similarity search via `pgvector`. Every extracted memory gets an embedding vector (`vector(1536)`). On incoming messages, Chi performs a cosine distance search and injects only the most relevant memories into the prompt.
+**Goal:** Upgrade Cima's memory system from loading all facts to performing semantic similarity search via `pgvector`. Every extracted memory gets an embedding vector (`vector(1536)`). On incoming messages, Cima performs a cosine distance search and injects only the most relevant memories into the prompt.
 
 ---
 

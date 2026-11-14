@@ -49,6 +49,7 @@ export function createHealthClient(): HealthClient {
     'content-type': 'application/json',
   }
   if (secret) {
+    headers['x-cima-secret'] = secret
     headers['x-chi-secret'] = secret
   }
   if (userId) {

@@ -157,7 +157,7 @@ function handleCreateConversation() {
 </script>
 
 <template>
-  <div class="chi-app-shell">
+  <div class="cima-app-shell">
     <!-- Desktop Sidebar / Mobile Drawer -->
     <AppSidebar
       :conversations="conversations"
@@ -178,7 +178,7 @@ function handleCreateConversation() {
     <div class="main-panel-wrap">
       <!-- Mobile Top Navigation Header -->
       <header class="mobile-nav-bar">
-        <div class="mobile-nav-bar__brand">chi<span class="brand-dot">.</span></div>
+        <div class="mobile-nav-bar__brand">cima<span class="brand-dot">.</span></div>
         <div class="mobile-nav-bar__actions">
           <button class="circle-btn" title="New conversation" @click="handleCreateConversation">
             <svg
@@ -278,7 +278,7 @@ function handleCreateConversation() {
               v-model="inputMessage"
               class="hero-input"
               type="text"
-              placeholder="Ask Chi anything…"
+              placeholder="Ask Cima anything…"
               @keydown="handleKeydown"
             />
 
@@ -432,7 +432,7 @@ function handleCreateConversation() {
               v-model="inputMessage"
               class="composer-input"
               type="text"
-              placeholder="Ask Chi anything…"
+              placeholder="Ask Cima anything…"
               @keydown="handleKeydown"
             />
 
@@ -451,7 +451,7 @@ function handleCreateConversation() {
 </template>
 
 <style scoped lang="scss">
-.chi-app-shell {
+.cima-app-shell {
   display: flex;
   height: 100vh;
   width: 100vw;

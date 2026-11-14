@@ -113,7 +113,7 @@ async function deleteFact(id: string) {
 </script>
 
 <template>
-  <div class="chi-app-shell">
+  <div class="cima-app-shell">
     <AppSidebar
       :conversations="conversations"
       :active-id="null"
@@ -131,7 +131,7 @@ async function deleteFact(id: string) {
     <div class="main-panel-wrap">
       <!-- Mobile Bar -->
       <header class="mobile-nav-bar">
-        <div class="mobile-nav-bar__brand">chi<span class="brand-dot">.</span></div>
+        <div class="mobile-nav-bar__brand">cima<span class="brand-dot">.</span></div>
         <div class="mobile-nav-bar__actions">
           <NuxtLink to="/" class="circle-btn" title="Back to chat">
             <svg
@@ -174,7 +174,7 @@ async function deleteFact(id: string) {
         <!-- Header -->
         <div class="memory-header">
           <div class="memory-header__titles">
-            <span class="memory-header__meta">{{ facts.length }} things Chi remembers</span>
+            <span class="memory-header__meta">{{ facts.length }} things Cima remembers</span>
             <h1 class="memory-header__title">Memory</h1>
           </div>
           <button class="circle-btn" title="Refresh memories" @click="loadFacts">
@@ -285,7 +285,7 @@ async function deleteFact(id: string) {
 </template>
 
 <style scoped lang="scss">
-.chi-app-shell {
+.cima-app-shell {
   display: flex;
   height: 100vh;
   width: 100vw;

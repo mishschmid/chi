@@ -4,7 +4,7 @@ import { user } from '../server/database/schema'
 
 const DEV_USER_ID = process.env.DEV_USER_ID ?? '00000000-0000-0000-0000-000000000001'
 const DEV_USER_NAME = 'Michael'
-const DEV_USER_EMAIL = 'michael@chi.test'
+const DEV_USER_EMAIL = 'michael@cima.test'
 
 async function seed() {
   const existing = await db.select().from(user).where(eq(user.id, DEV_USER_ID)).limit(1)

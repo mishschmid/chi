@@ -1,6 +1,6 @@
 # Task 03 – Voice (Push-to-Talk)
 
-**Goal:** Turn Chi into a voice-first experience in the browser. The user can press-and-hold (or toggle) a microphone button, speak, have their speech transcribed via Whisper/STT, receive Chi's streaming response, and listen to Chi speak back via TTS.
+**Goal:** Turn Cima into a voice-first experience in the browser. The user can press-and-hold (or toggle) a microphone button, speak, have their speech transcribed via Whisper/STT, receive Cima's streaming response, and listen to Cima speak back via TTS.
 
 ---
 
@@ -23,7 +23,7 @@
 
 ## 3.4 Speech Playback Composable (`app/composables/useAudioPlayer.ts`)
 
-- Manages audio queuing and streaming playback so Chi's voice can play immediately or upon response completion.
+- Manages audio queuing and streaming playback so Cima's voice can play immediately or upon response completion.
 - Controls: `isPlaying`, `stop()`.
 
 ## 3.5 UI Integration in Chat

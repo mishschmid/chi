@@ -38,7 +38,7 @@ const todayFormatted = computed(() => {
 })
 
 const initials = computed(() => {
-  const source = props.user?.name || props.user?.email || 'Chi'
+  const source = props.user?.name || props.user?.email || 'Cima'
   return source
     .split(/[\s@.]+/)
     .filter(Boolean)
@@ -77,7 +77,7 @@ const totalConversations = computed(() => props.conversations.length)
     <div class="sidebar__inner">
       <!-- Header with brand mark & date -->
       <div class="brand">
-        <NuxtLink to="/" class="brand__logo"> chi<span class="brand__dot">.</span> </NuxtLink>
+        <NuxtLink to="/" class="brand__logo"> cima<span class="brand__dot">.</span> </NuxtLink>
         <span class="brand__date">{{ todayFormatted }}</span>
       </div>
 
@@ -153,7 +153,7 @@ const totalConversations = computed(() => props.conversations.length)
       <div class="account-card">
         <div class="account-card__avatar">{{ initials }}</div>
         <div class="account-card__meta">
-          <span class="account-card__name">{{ user?.name || 'Chi User' }}</span>
+          <span class="account-card__name">{{ user?.name || 'Cima User' }}</span>
           <span class="account-card__email">{{ user?.email || 'mish.schmid@gmail.com' }}</span>
         </div>
         <button class="account-card__signout" @click="emit('signOut')">Sign out</button>

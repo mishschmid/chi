@@ -67,7 +67,7 @@ export const verification = pgTable('verification', {
   updatedAt: timestamp('updated_at', { mode: 'date' }),
 })
 
-// ─── Chi domain tables ────────────────────────────────────────────────────
+// ─── Cima domain tables ───────────────────────────────────────────────────
 
 export const conversations = pgTable(
   'conversations',

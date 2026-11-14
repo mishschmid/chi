@@ -10,7 +10,7 @@ export interface ToolDefinition {
   }
 }
 
-export const CHI_TOOLS: ToolDefinition[] = [
+export const CIMA_TOOLS: ToolDefinition[] = [
   {
     name: 'get_recent_workouts',
     description:
@@ -114,3 +114,5 @@ export async function executeToolCall(
       return JSON.stringify({ error: `Unknown tool: ${name}` })
   }
 }
+
+export const CHI_TOOLS = CIMA_TOOLS

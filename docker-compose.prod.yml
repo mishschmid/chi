@@ -1,7 +1,9 @@
-# Production deployment for Chi on Dokploy
+# Production deployment for Cima on Dokploy
 #
-# Assumptions:
+# Dokploy configuration:
+# - Repository: https://github.com/mishschmid/cima.git (branch: main)
 # - Dokploy manages Traefik, domains, and Let's Encrypt SSL.
+# - Configure domain "cima.you" with container port 3000 under the "Domains" tab of the app service.
 # - Postgres database runs with pgvector extension.
 
 services:
@@ -9,13 +11,13 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    image: chi:latest
+    image: cima:latest
     restart: unless-stopped
     environment:
       NITRO_PORT: 3000
       BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET}
-      BETTER_AUTH_URL: ${BETTER_AUTH_URL}
-      DATABASE_URL: postgresql://chi:${POSTGRES_PASSWORD}@postgres:5432/chi
+      BETTER_AUTH_URL: ${BETTER_AUTH_URL:-https://cima.you}
+      DATABASE_URL: postgresql://cima:${POSTGRES_PASSWORD}@postgres:5432/cima
       OPENAI_API_KEY: ${OPENAI_API_KEY}
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
       LLM_PROVIDER: ${LLM_PROVIDER:-openai}
@@ -34,16 +36,16 @@ services:
     image: pgvector/pgvector:pg17
     restart: unless-stopped
     environment:
-      POSTGRES_USER: chi
+      POSTGRES_USER: cima
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: chi
+      POSTGRES_DB: cima
     volumes:
-      - chi-postgres:/var/lib/postgresql/data
+      - cima-postgres:/var/lib/postgresql/data
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U chi -d chi']
+      test: ['CMD-SHELL', 'pg_isready -U cima -d cima']
       interval: 10s
       timeout: 5s
       retries: 5
 
 volumes:
-  chi-postgres:
+  cima-postgres:

@@ -1,6 +1,6 @@
 import OpenAI from 'openai'
 import type { ChatMessage, ChatOptions, LlmProvider } from './types'
-import { CHI_TOOLS, executeToolCall } from './tools'
+import { CIMA_TOOLS, executeToolCall } from './tools'
 
 export function toOpenAiMessages(
   messages: ChatMessage[]
@@ -63,7 +63,7 @@ export function createOpenAiProvider(apiKey: string, defaultModel = 'gpt-4o'): L
       const firstResponse = await client.chat.completions.create({
         model: options?.model ?? defaultModel,
         messages: activeMessages,
-        tools: CHI_TOOLS.map((t) => ({
+        tools: CIMA_TOOLS.map((t) => ({
           type: 'function' as const,
           function: {
             name: t.name,

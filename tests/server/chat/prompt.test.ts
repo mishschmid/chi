@@ -5,7 +5,7 @@ import type { ProfileFact } from '../../../server/database/schema'
 describe('chat prompt builder', () => {
   it('builds system prompt without facts', () => {
     const prompt = buildSystemPrompt([])
-    expect(prompt).toContain('You are Chi')
+    expect(prompt).toContain('You are Cima')
     expect(prompt).not.toContain('What you know about the user')
   })
 
@@ -34,7 +34,7 @@ describe('chat prompt builder', () => {
     ]
 
     const prompt = buildSystemPrompt(mockFacts)
-    expect(prompt).toContain('You are Chi')
+    expect(prompt).toContain('You are Cima')
     expect(prompt).toContain('What you know about the user:')
     expect(prompt).toContain('- [goal] Training for a marathon in autumn')
     expect(prompt).toContain('- [identity] Lives in Zurich')

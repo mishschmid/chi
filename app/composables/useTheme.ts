@@ -23,7 +23,7 @@ export function useTheme() {
   function setTheme(newTheme: AppTheme) {
     theme.value = newTheme
     if (typeof localStorage !== 'undefined') {
-      localStorage.setItem('chi_theme', newTheme)
+      localStorage.setItem('cima_theme', newTheme)
     }
     applyTheme(newTheme)
   }
@@ -31,56 +31,63 @@ export function useTheme() {
   function setOrangeStartScreen(val: boolean) {
     orangeStartScreen.value = val
     if (typeof localStorage !== 'undefined') {
-      localStorage.setItem('chi_orange_start_screen', val ? '1' : '0')
+      localStorage.setItem('cima_orange_start_screen', val ? '1' : '0')
     }
   }
 
   function setVoiceInput(val: boolean) {
     voiceInput.value = val
     if (typeof localStorage !== 'undefined') {
-      localStorage.setItem('chi_voice_input', val ? '1' : '0')
+      localStorage.setItem('cima_voice_input', val ? '1' : '0')
     }
   }
 
   function setSendAfterPause(val: boolean) {
     sendAfterPause.value = val
     if (typeof localStorage !== 'undefined') {
-      localStorage.setItem('chi_send_after_pause', val ? '1' : '0')
+      localStorage.setItem('cima_send_after_pause', val ? '1' : '0')
     }
   }
 
   function setShowTokenCost(val: boolean) {
     showTokenCost.value = val
     if (typeof localStorage !== 'undefined') {
-      localStorage.setItem('chi_show_token_cost', val ? '1' : '0')
+      localStorage.setItem('cima_show_token_cost', val ? '1' : '0')
     }
   }
 
   onMounted(() => {
     if (typeof localStorage !== 'undefined') {
-      const stored = localStorage.getItem('chi_theme') as AppTheme | null
+      const stored = (localStorage.getItem('cima_theme') ??
+        localStorage.getItem('chi_theme')) as AppTheme | null
       if (stored && ['light', 'dark', 'system'].includes(stored)) {
         theme.value = stored
       } else {
         theme.value = 'light'
       }
 
-      const storedOrange = localStorage.getItem('chi_orange_start_screen')
+      const storedOrange =
+        localStorage.getItem('cima_orange_start_screen') ??
+        localStorage.getItem('chi_orange_start_screen')
       if (storedOrange !== null) {
         orangeStartScreen.value = storedOrange === '1'
       }
 
-      const storedVoice = localStorage.getItem('chi_voice_input')
+      const storedVoice =
+        localStorage.getItem('cima_voice_input') ?? localStorage.getItem('chi_voice_input')
       if (storedVoice !== null) {
         voiceInput.value = storedVoice === '1'
       }
 
-      const storedPause = localStorage.getItem('chi_send_after_pause')
+      const storedPause =
+        localStorage.getItem('cima_send_after_pause') ??
+        localStorage.getItem('chi_send_after_pause')
       if (storedPause !== null) {
         sendAfterPause.value = storedPause === '1'
       }
 
-      const storedMeta = localStorage.getItem('chi_show_token_cost')
+      const storedMeta =
+        localStorage.getItem('cima_show_token_cost') ?? localStorage.getItem('chi_show_token_cost')
       if (storedMeta !== null) {
         showTokenCost.value = storedMeta === '1'
       }

@@ -27,7 +27,7 @@ async function handleSubmit() {
   <div class="auth-page">
     <div class="auth-card">
       <div class="auth-card__header">
-        <h1 class="logo">chi<span class="logo__dot">.</span></h1>
+        <h1 class="logo">cima<span class="logo__dot">.</span></h1>
         <p class="tagline">Create your companion account</p>
       </div>
 

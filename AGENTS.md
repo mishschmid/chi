@@ -1,6 +1,6 @@
-# AGENTS.md – Chi
+# AGENTS.md – Cima
 
-Chi is a voice-first AI companion that sits at the centre of a set of child apps (health, tasks, finances). Read `docs/concept.md` (product) and `docs/architecture.md` (architecture) for the bigger picture. Work on **one task at a time** from `docs/tasks/`.
+Cima is a voice-first AI companion that sits at the centre of a set of child apps (health, tasks, finances). Read `docs/concept.md` (product) and `docs/architecture.md` (architecture) for the bigger picture. Work on **one task at a time** from `docs/tasks/`.
 
 ## Stack
 
@@ -40,7 +40,7 @@ server/
   database/       index.ts (db client), schema.ts (Drizzle schema)
   utils/          server helpers (auto-imported by Nitro)
     llm/          model layer (provider interface + providers)
-    memory/       Chi's memory module
+    memory/       Cima's memory module
 drizzle/          generated migrations (never edit by hand)
 tests/            Vitest tests, mirroring the source folders
 docs/             concept, architecture, task specs
@@ -71,4 +71,4 @@ The sibling repo `../sansa` uses the same stack. When unsure, look there:
 - `../sansa/server/utils/chat/`: chat with tool calling (prompt, context, tools)
 - `../sansa/server/api/chat/`: chat API routes
 
-Copy patterns, not domain logic. Chi has no running or health logic of its own.
+Copy patterns, not domain logic. Cima has no running or health logic of its own.

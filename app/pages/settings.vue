@@ -92,7 +92,7 @@ async function exportConversations() {
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = `chi-conversations-${new Date().toISOString().slice(0, 10)}.json`
+    a.download = `cima-conversations-${new Date().toISOString().slice(0, 10)}.json`
     a.click()
     URL.revokeObjectURL(url)
   } catch (err: any) {
@@ -101,7 +101,7 @@ async function exportConversations() {
 }
 
 async function clearMemory() {
-  if (!confirm('Are you sure you want Chi to forget all saved memory facts?')) return
+  if (!confirm('Are you sure you want Cima to forget all saved memory facts?')) return
   try {
     const facts = await $fetch<{ id: string }[]>('/api/memory/facts')
     await Promise.all(
@@ -123,7 +123,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="chi-app-shell">
+  <div class="cima-app-shell">
     <AppSidebar
       :conversations="conversations"
       :active-id="null"
@@ -141,7 +141,7 @@ onMounted(async () => {
     <div class="main-panel-wrap">
       <!-- Mobile Bar -->
       <header class="mobile-nav-bar">
-        <div class="mobile-nav-bar__brand">chi<span class="brand-dot">.</span></div>
+        <div class="mobile-nav-bar__brand">cima<span class="brand-dot">.</span></div>
         <div class="mobile-nav-bar__actions">
           <NuxtLink to="/" class="circle-btn" title="Back to chat">
             <svg
@@ -286,7 +286,7 @@ onMounted(async () => {
             <div class="setting-row">
               <div class="setting-row__info">
                 <span class="setting-row__label">Token and cost on messages</span>
-                <span class="setting-row__hint">Shown on every Chi reply</span>
+                <span class="setting-row__hint">Shown on every Cima reply</span>
               </div>
               <button
                 :class="['toggle-switch', { 'toggle-switch--on': showTokenCost }]"
@@ -320,7 +320,7 @@ onMounted(async () => {
             <div class="setting-row">
               <div class="setting-row__info">
                 <span class="setting-row__label">Clear memory</span>
-                <span class="setting-row__hint">Chi forgets all saved facts</span>
+                <span class="setting-row__hint">Cima forgets all saved facts</span>
               </div>
               <button class="pill-btn pill-btn--danger" @click="clearMemory">Clear</button>
             </div>
@@ -374,7 +374,7 @@ onMounted(async () => {
 </template>
 
 <style scoped lang="scss">
-.chi-app-shell {
+.cima-app-shell {
   display: flex;
   height: 100vh;
   width: 100vw;

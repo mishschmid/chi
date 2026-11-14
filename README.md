@@ -1,6 +1,6 @@
-# Chi
+# Cima
 
-Chi is a voice-first AI companion that gets to know you deeply over time, acting as the conversation hub connecting a universe of child apps (health span, tasks, finances).
+Cima is a voice-first AI companion that gets to know you deeply over time, acting as the conversation hub connecting a universe of child apps (health span, tasks, finances).
 
 Read [docs/concept.md](./docs/concept.md) for product strategy and [docs/architecture.md](./docs/architecture.md) for architectural design.
 
@@ -41,7 +41,7 @@ yarn db:seed
 yarn dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) to chat with Chi. Visit `/memory` to view and manage what Chi has learned about you.
+Open [http://localhost:3000](http://localhost:3000) to chat with Cima. Visit `/memory` to view and manage what Cima has learned about you.
 
 ## Scripts
 
@@ -53,3 +53,13 @@ Open [http://localhost:3000](http://localhost:3000) to chat with Chi. Visit `/me
 - `yarn db:generate`: Generate Drizzle migrations
 - `yarn db:migrate`: Apply pending migrations
 - `yarn db:studio`: Launch Drizzle Studio web inspector
+
+## Production Deployment (Dokploy)
+
+Cima is deployed on Hetzner via Dokploy using `docker-compose.prod.yml`:
+
+- **Repository**: `https://github.com/mishschmid/cima.git` (Branch: `main`)
+- **Domain**: `cima.you`
+- **Port**: `3000` (Traefik reverse proxy)
+- **SSL**: Automatic Let's Encrypt managed by Dokploy
+- **Database**: Postgres 17 with `pgvector` extension on persistent volume `cima-postgres`

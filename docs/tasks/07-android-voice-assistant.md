@@ -1,10 +1,10 @@
-# Task 07 – "Chi Voice" Android Assistant App
+# Task 07 – "Cima Voice" Android Assistant App
 
-**Goal:** A small Android app that registers as the phone's **default digital assistant**. When the Fenix 8 voice-assistant button is pressed, Android opens Chi Voice instead of Gemini. It listens through the watch mic, sends the text to `POST /api/voice/turn` (Task 06), and speaks the reply on the watch speaker.
+**Goal:** A small Android app that registers as the phone's **default digital assistant**. When the Fenix 8 voice-assistant button is pressed, Android opens Cima Voice instead of Gemini. It listens through the watch mic, sends the text to `POST /api/voice/turn` (Task 06), and speaks the reply on the watch speaker.
 
 Depends on: Task 06.
 
-The app lives in a separate repo (`chi-android`), not in this Nuxt repo. Kotlin, min SDK 30, no third-party dependencies beyond AndroidX + OkHttp (or `HttpURLConnection`). Installed from an APK, not the Play Store.
+The app lives in a separate repo (`cima-android`), not in this Nuxt repo. Kotlin, min SDK 30, no third-party dependencies beyond AndroidX + OkHttp (or `HttpURLConnection`). Installed from an APK, not the Play Store.
 
 ---
 
@@ -19,7 +19,7 @@ Write the results to `docs/tasks/07-findings.md`. If (1) fails, skip to Task 08 
 
 ## 7.1 Assistant Registration
 
-- `ChiVoiceInteractionService` (`VoiceInteractionService`) plus a `VoiceInteractionSessionService`, declared with `android.permission.BIND_VOICE_INTERACTION` and an `interaction_service` XML.
+- `CimaVoiceInteractionService` (`VoiceInteractionService`) plus a `VoiceInteractionSessionService`, declared with `android.permission.BIND_VOICE_INTERACTION` and an `interaction_service` XML.
 - Fallback: an `AssistActivity` that handles `android.intent.action.ASSIST` and `android.intent.action.VOICE_COMMAND`.
 - Permissions: `RECORD_AUDIO`, `INTERNET`, `BLUETOOTH_CONNECT`.
 
@@ -45,15 +45,15 @@ Each error gets a short spoken line plus a double vibration:
 | Case                 | Spoken                                     |
 | -------------------- | ------------------------------------------ |
 | No speech recognized | "I didn't catch that."                     |
-| Network / timeout    | "Chi isn't reachable right now."           |
-| `401`                | "This device isn't connected to Chi."      |
+| Network / timeout    | "Cima isn't reachable right now."          |
+| `401`                | "This device isn't connected to Cima."     |
 | `5xx`                | `statusMessage` or "Something went wrong." |
 
 ## 7.5 Settings Screen
 
 - Server URL, device token (pasted from `/devices`, stored in `EncryptedSharedPreferences`), language, "Listen again after questions" toggle.
 - A "Test" button that runs one turn with the text "ping" and shows the reply and how long it took.
-- A link to the system's default-assistant settings, with a hint if Chi Voice isn't selected.
+- A link to the system's default-assistant settings, with a hint if Cima Voice isn't selected.
 
 ## 7.6 Privacy
 
@@ -63,7 +63,7 @@ Each error gets a short spoken line plus a double vibration:
 ## 7.7 Verification
 
 - Manual run on the Pixel/Android phone + Fenix 8:
-  - The watch button opens Chi Voice, the question is heard through the watch mic, and the answer is spoken on the watch.
+  - The watch button opens Cima Voice, the question is heard through the watch mic, and the answer is spoken on the watch.
   - A follow-up question keeps context ("And tomorrow?").
   - Airplane mode → the spoken network error.
   - Revoked token → the spoken 401 message.

@@ -1,10 +1,10 @@
 import { describe, expect, it, vi } from 'vitest'
-import { executeToolCall, CHI_TOOLS } from '../../../server/utils/llm/tools'
+import { executeToolCall, CIMA_TOOLS } from '../../../server/utils/llm/tools'
 import * as healthModule from '../../../server/utils/health/client'
 
 describe('health tools & execution', () => {
   it('exposes well-defined tools', () => {
-    const names = CHI_TOOLS.map((t) => t.name)
+    const names = CIMA_TOOLS.map((t) => t.name)
     expect(names).toContain('get_recent_workouts')
     expect(names).toContain('get_recovery_metrics')
     expect(names).toContain('get_active_training_plan')

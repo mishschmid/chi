@@ -1,5 +1,5 @@
 <template>
-  <div class="thinking" role="status" aria-label="Chi is thinking">
+  <div class="thinking" role="status" aria-label="Cima is thinking">
     <span class="thinking__dot" />
     <span class="thinking__dot" />
     <span class="thinking__dot" />

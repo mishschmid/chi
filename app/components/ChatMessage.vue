@@ -39,7 +39,7 @@ const formattedCost = computed(() => {
       <div class="bubble__header-assistant">
         <div class="bubble__avatar">c</div>
         <div class="bubble__author">
-          <span class="bubble__name">Chi</span>
+          <span class="bubble__name">Cima</span>
           <span class="bubble__role-label">Assistant</span>
         </div>
 

@@ -12,7 +12,7 @@ describe('auth route and role validation', () => {
   it('validates default user role assignment', () => {
     const newUser = {
       name: 'Test Partner',
-      email: 'partner@chi.test',
+      email: 'partner@cima.test',
       role: 'partner',
     }
 
